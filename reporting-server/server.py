@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 
-@app.route("/geo-ip")
+@app.route("/geo_ip")
 def geo_ip():
     """
         Endpoint to process a geo-ip request. 
@@ -18,7 +18,7 @@ def geo_ip():
         'lng' : request.args.get('lng'),
         'mac_addr' : request.args.get('mac_addr'),
         'dev_id' : request.args.get('dev_id'),
-        'ip' : request.args.remote_addr,
+        'ip' : request.remote_addr,
     }
 
     if not all(res.values()):
