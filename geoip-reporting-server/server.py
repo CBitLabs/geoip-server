@@ -2,22 +2,28 @@
     Simple server to accept geo-ip requests.
 """
 from flask import Flask, request, jsonify
+import json
 
 app = Flask(__name__)
 
-
-@app.route("/geo_ip")
-def geo_ip():
+@app.route("/geoip", methods=["GET", "POST"])
+def geoip():
     """
         Endpoint to process a geo-ip request. 
     """
     
+    try:
+        data = json.loads(request.data)
+    except ValueError:
+        data = {}
+
     res = {
         'success': True,
-        'lat' : request.args.get('lat'),
-        'lng' : request.args.get('lng'),
-        'mac_addr' : request.args.get('mac_addr'),
-        'dev_id' : request.args.get('dev_id'),
+        'lat' : data.get('lat'),
+        'lng' : data.get('lng'),
+        'bssid' : data.get('bssid'),
+        'ssid' : data.get('ssid'),
+        'uuid' : data.get('uuid'),
         'ip' : request.remote_addr,
     }
 
@@ -29,7 +35,7 @@ def geo_ip():
 
 if __name__ == "__main__":
     DEBUG = True
-    HOST = "127.0.0.1"
+    HOST = "0.0.0.0"
     PORT = 8000
     app.debug = DEBUG
     app.run(host=HOST, port=PORT)
