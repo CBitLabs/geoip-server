@@ -4,6 +4,7 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, request, jsonify
 import json
+import os
 
 app = Flask(__name__)
 
