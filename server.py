@@ -1,8 +1,10 @@
 """
     Simple server to accept geo-ip requests.
 """
+
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, request, jsonify
+import datetime
 import json
 import os
 
@@ -27,6 +29,7 @@ class GeoIP(db.Model):
     ssid = db.Column(db.String(80))
     uuid = db.Column(db.String(80))
     ip = db.Column(db.String(80))
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now)
 
     def __init__(self, **kwargs):
         self.lat = kwargs['lat']
@@ -37,7 +40,8 @@ class GeoIP(db.Model):
         self.ip = kwargs['ip']
 
     def __repr__(self):
-        return "{'lat': %(lat)s, 'lng': %(lng)s, 'bssid': %(bssid)s, 'ssid': %(ssid)s, 'uuid': %(uuid)s, 'ip': %(ip)s}" % self. __dict__
+        keys = ['lat', 'lng', 'bssid', 'ssid', 'uuid', 'ip', 'created_at']
+        return "{%s}" % "".join(map(lambda key : "'%s' : %s, " % (key, self.__dict__[key]), keys))
 
 @app.route("/geoip", methods=["GET", "POST"])
 def geoip():
