@@ -46,10 +46,11 @@ def geoip():
         Endpoint to process a geo-ip request. 
     """
     
-    try:
-        data = json.loads(request.data)
-    except ValueError:
-        data = {}
+    if request.method == "POST":
+        data = _get_data(request)
+    elif request.method == "GET":
+        data = request.args
+
 
     res = {
         'success': True,
@@ -69,6 +70,13 @@ def geoip():
         db.session.commit()
     
     return jsonify(**res)
+
+def _get_data(request):
+    try:
+        data = json.loads(request.data)
+    except ValueError:
+        data = {}
+    return data
 
 
 if __name__ == "__main__":
