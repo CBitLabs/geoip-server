@@ -39,9 +39,11 @@ class GeoIP(db.Model):
         self.uuid = kwargs['uuid']
         self.ip = kwargs['ip']
 
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
     def __repr__(self):
-        keys = ['lat', 'lng', 'bssid', 'ssid', 'uuid', 'ip', 'created_at']
-        return "{%s}" % "".join(map(lambda key : "'%s' : %s, " % (key, self.__dict__[key]), keys))
+        return str(self.as_dict())
 
 @app.route("/geoip", methods=["GET", "POST"])
 def geoip():
@@ -81,6 +83,9 @@ def _get_data(request):
         data = {}
     return data
 
+@app.route("/history/<uuid>")
+def history(uuid):
+    return jsonify({'history' : map(lambda geoip: geoip.as_dict(), GeoIP.query.filter(GeoIP.uuid==uuid).all())})
 
 if __name__ == "__main__":
     host = "0.0.0.0"
