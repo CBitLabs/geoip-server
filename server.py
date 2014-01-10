@@ -9,12 +9,11 @@ import os
 
 def setup_app():
     app = Flask(__name__)
+    app.config.from_pyfile('env.py')
 
-        
     if "DATABASE_URL" in os.environ:
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
-    app.config.from_pyfile('env.py')
     db = SQLAlchemy(app)
     return app, db
 
