@@ -3,8 +3,9 @@
 """
 
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import datetime
+from time import mktime
 import json
 import os
 
@@ -44,6 +45,14 @@ class GeoIP(db.Model):
 
     def __repr__(self):
         return str(self.as_dict())
+
+class MyEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return int(mktime(obj.timetuple()))
+
+        return json.JSONEncoder.default(self, obj)
 
 @app.route("/geoip", methods=["GET", "POST"])
 def geoip():
@@ -85,7 +94,8 @@ def _get_data(request):
 
 @app.route("/history/<uuid>")
 def history(uuid):
-    return jsonify({'history' : map(lambda geoip: geoip.as_dict(), GeoIP.query.filter(GeoIP.uuid==uuid).all())})
+    history = GeoIP.query.filter(GeoIP.uuid==uuid).all()
+    return make_response(json.dumps(map(lambda geoip: geoip.as_dict(), history), cls=MyEncoder))
 
 if __name__ == "__main__":
     host = "0.0.0.0"
