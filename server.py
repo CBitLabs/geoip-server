@@ -41,18 +41,10 @@ class GeoIP(db.Model):
         self.ip = kwargs['ip']
 
     def as_dict(self):
-       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+       return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
 
     def __repr__(self):
         return str(self.as_dict())
-
-class MyEncoder(json.JSONEncoder):
-
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return int(mktime(obj.timetuple()))
-
-        return json.JSONEncoder.default(self, obj)
 
 @app.route("/geoip", methods=["GET", "POST"])
 def geoip():
@@ -95,7 +87,7 @@ def _get_data(request):
 @app.route("/history/<uuid>")
 def history(uuid):
     history = GeoIP.query.filter(GeoIP.uuid==uuid).all()
-    return make_response(json.dumps(map(lambda geoip: geoip.as_dict(), history), cls=MyEncoder))
+    return make_response(json.dumps(map(lambda geoip: geoip.as_dict(), history)))
 
 if __name__ == "__main__":
     host = "0.0.0.0"
