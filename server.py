@@ -6,10 +6,19 @@ from flask import Flask, request, jsonify
 import json
 import os
 
-app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-db = SQLAlchemy(app)
+def setup_app():
+    app = Flask(__name__)
+
+        
+    if "DATABASE_URL" in os.environ:
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+
+    app.config.from_pyfile('env.py')
+    db = SQLAlchemy(app)
+    return app, db
+
+app, db = setup_app()
 
 class GeoIP(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,6 +36,9 @@ class GeoIP(db.Model):
         self.ssid = kwargs['ssid']
         self.uuid = kwargs['uuid']
         self.ip = kwargs['ip']
+
+    def __repr__(self):
+        return "{'lat': %(lat)s, 'lng': %(lng)s, 'bssid': %(bssid)s, 'ssid': %(ssid)s, 'uuid': %(uuid)s, 'ip': %(ip)s}" % self. __dict__
 
 @app.route("/geoip", methods=["GET", "POST"])
 def geoip():
@@ -60,8 +72,6 @@ def geoip():
 
 
 if __name__ == "__main__":
-    DEBUG = True
-    HOST = "0.0.0.0"
-    PORT = 8000
-    app.debug = DEBUG
-    app.run(host=HOST, port=PORT)
+    host = "0.0.0.0"
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host=host, port=port)
