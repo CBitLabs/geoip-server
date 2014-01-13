@@ -86,7 +86,7 @@ def _get_data(request):
 
 @app.route("/history/<uuid>")
 def history(uuid):
-    history = GeoIP.query.filter(GeoIP.uuid==uuid).all()
+    history = GeoIP.query.filter(GeoIP.uuid==uuid).order_by(GeoIP.created_at.desc()).all()
     return make_response(json.dumps(map(lambda geoip: geoip.as_dict(), history)))
 
 if __name__ == "__main__":
