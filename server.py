@@ -66,7 +66,7 @@ class GeoIP(db.Model):
 
 def _reverse_geo(d):
     try:
-        return Geocoder.reverse_geocode(float(d['lat']), float(d['lng']))
+        return Geocoder.reverse_geocode(float(d['lat']), float(d['lng'])).formatted_address
     except GeocoderError:
         return "No location information!"
 
