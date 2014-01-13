@@ -12,6 +12,8 @@ import datetime
 import json
 import os
 
+REQ_KEYS = ['lat', 'lng', 'bssid', 'ssid', 'uuid']
+
 
 def setup_app():
     app = Flask(__name__)
@@ -79,8 +81,8 @@ def _apply_transforms(transforms, d):
         d[key] = func(d)
 
 
-@app.route("/geoip", methods=["GET", "POST"])
-def geoip():
+@app.route("/add", methods=["GET", "POST"])
+def add():
     """
         Endpoint to process a geo-ip request. 
     """
@@ -91,19 +93,13 @@ def geoip():
         data = request.args
 
 
-    res = {
-        'success': True,
-        'lat' : data.get('lat'),
-        'lng' : data.get('lng'),
-        'bssid' : data.get('bssid'),
-        'ssid' : data.get('ssid'),
-        'uuid' : data.get('uuid'),
-        'ip' : request.remote_addr,
-    }
+    res = {key : data.get(key) for key in REQ_KEYS}
 
     if not all(res.values()):
         res['success'] = False
     else:
+        res['ip'] = request.remote_addr
+        res['success'] = True
         geoip_obj = GeoIP(**res)
         db.session.add(geoip_obj)
         db.session.commit()
@@ -112,7 +108,10 @@ def geoip():
 
 def _get_data(request):
     try:
-        data = json.loads(request.data)
+        data = request.form
+        if not len(data):
+            
+            data = json.loads(request.data)
     except ValueError:
         data = {}
     return data
