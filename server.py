@@ -4,6 +4,7 @@
 
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, request, jsonify, make_response
+from pygeocoder import Geocoder, GeocoderError
 from time import mktime
 
 import humanize
@@ -47,20 +48,27 @@ class GeoIP(db.Model):
 
     def as_clean_json(self):
         as_dict = self.as_dict()
+
         invalid_keys = ['id']
+        
         transforms = [
             ('created_at_human', lambda geoip: humanize.naturaltime(geoip['created_at'])),
-            ('loc', lambda geoip: "%s, %s" % (geoip['lat'], geoip['lng'])),
+            ('loc', _reverse_geo),
             ('created_at', lambda geoip: str(geoip['created_at'])),
         ]
 
         _clean_dict(invalid_keys, as_dict)
         _apply_transforms(transforms, as_dict)
-        print as_dict
         return as_dict
 
     def __repr__(self):
         return str(self.as_dict())
+
+def _reverse_geo(d):
+    try:
+        Geocoder.reverse_geocode(float(d['lat']), float(d['lng']))
+    except GeocoderError:
+        return "No location information!"
 
 def _clean_dict(invalid_keys, d):
     for invalid in invalid_keys:
