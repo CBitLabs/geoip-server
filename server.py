@@ -4,8 +4,10 @@
 
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, request, jsonify, make_response
-import datetime
 from time import mktime
+
+import humanize
+import datetime
 import json
 import os
 
@@ -41,10 +43,33 @@ class GeoIP(db.Model):
         self.ip = kwargs['ip']
 
     def as_dict(self):
-       return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def as_clean_json(self):
+        as_dict = self.as_dict()
+        invalid_keys = ['id']
+        transforms = [
+            ('created_at_human', lambda geoip: humanize.naturaltime(geoip['created_at'])),
+            ('loc', lambda geoip: "%s, %s" % (geoip['lat'], geoip['lng'])),
+            ('created_at', lambda geoip: str(geoip['created_at'])),
+        ]
+
+        _clean_dict(invalid_keys, as_dict)
+        _apply_transforms(transforms, as_dict)
+        print as_dict
+        return as_dict
 
     def __repr__(self):
         return str(self.as_dict())
+
+def _clean_dict(invalid_keys, d):
+    for invalid in invalid_keys:
+        del d[invalid]
+
+def _apply_transforms(transforms, d):
+    for key, func in transforms:
+        d[key] = func(d)
+
 
 @app.route("/geoip", methods=["GET", "POST"])
 def geoip():
@@ -87,7 +112,7 @@ def _get_data(request):
 @app.route("/history/<uuid>")
 def history(uuid):
     history = GeoIP.query.filter(GeoIP.uuid==uuid).order_by(GeoIP.created_at.desc()).all()
-    return make_response(json.dumps(map(lambda geoip: geoip.as_dict(), history)))
+    return make_response(json.dumps(map(lambda geoip: geoip.as_clean_json(), history)))
 
 if __name__ == "__main__":
     host = "0.0.0.0"
