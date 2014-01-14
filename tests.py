@@ -9,6 +9,8 @@ class FlaskrTestCase(unittest.TestCase):
 
     def setUp(self):
         self.db_fd, server.app.config['DATABASE'] = tempfile.mkstemp()
+        server.app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///%s" % server.app.config['DATABASE']
+        server.db.create_all()
         server.app.config['TESTING'] = True
         self.app = server.app.test_client()
 
