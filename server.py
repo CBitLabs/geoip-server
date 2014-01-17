@@ -87,11 +87,7 @@ def add():
         Endpoint to process a geo-ip request. 
     """
     
-    if request.method == "POST":
-        data = _get_data(request)
-    elif request.method == "GET":
-        data = request.args
-
+    data = _get_data()
 
     res = {key : data.get(key) for key in REQ_KEYS}
 
@@ -106,14 +102,22 @@ def add():
     
     return jsonify(**res)
 
-def _get_data(request):
-    try:
-        data = request.form
-        if not len(data):
-            
-            data = json.loads(request.data)
-    except ValueError:
-        data = {}
+def _get_data():
+
+    if request.method == "POST":
+        
+        try:
+            data = request.form
+            if not len(data):
+                data = json.loads(request.data)
+        except ValueError:
+            data = {}
+
+    elif request.method == "GET":
+        data = request.args
+
+    print "Recieved data: ", data
+        
     return data
 
 @app.route("/history/<uuid>")
