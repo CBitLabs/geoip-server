@@ -51,7 +51,7 @@ class GeoIP(db.Model):
     def as_clean_json(self):
         as_dict = self.as_dict()
 
-        invalid_keys = ['id']
+        invalid_keys = []#['id']
         
         transforms = [
             ('created_at_human', lambda geoip: humanize.naturaltime(geoip['created_at'])),
@@ -119,7 +119,9 @@ def _get_data(request):
 @app.route("/history/<uuid>")
 def history(uuid):
     history = GeoIP.query.filter(GeoIP.uuid==uuid).order_by(GeoIP.created_at.desc()).all()
-    return make_response(json.dumps(map(lambda geoip: geoip.as_clean_json(), history)))
+    r = make_response(json.dumps(map(lambda geoip: geoip.as_clean_json(), history)))
+    r.mimetype = 'application/json'
+    return r
 
 if __name__ == "__main__":
     host = "0.0.0.0"

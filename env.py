@@ -1,2 +1,2 @@
 DEBUG = True
-SQLALCHEMY_DATABASE_URI = "postgres://jblum:joshpass@localhost/geoip"
+SQLALCHEMY_DATABASE_URI = "postgres://jblum:password@localhost/geoip"
