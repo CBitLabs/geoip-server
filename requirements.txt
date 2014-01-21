@@ -3,3 +3,4 @@ Flask-SQLAlchemy==1.0
 psycopg2==2.5.2
 humanize==0.5
 pygeocoder==1.2.1.1
+apns==1.1.2
