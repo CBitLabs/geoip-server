@@ -7,7 +7,7 @@ def atof(val, default=None):
 def _convert(val, default, func):
     try:
         return func(val)
-    except ValueError:
+    except (ValueError, TypeError) as e:
         return default
 
 def apply_transforms(transforms, d):

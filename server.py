@@ -106,8 +106,7 @@ def add():
     ]
 
     apply_transforms(transforms, res)
-
-    success = all(res.values()) # all keys required
+    success = _isValid(res)
     res["success"] = success
     
     if success:
@@ -130,6 +129,12 @@ def _get_data():
         data = request.args
         
     return data
+
+def _isValid(res):
+    for k, v in res.iteritems():
+        if v is None:
+            return False
+    return True
 
 def _write_db(d):
     geoip_obj = GeoIP(**d)
