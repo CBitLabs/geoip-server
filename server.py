@@ -4,6 +4,7 @@
 
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, request, jsonify, make_response
+from sqlalchemy.dialects import postgresql
 from pygeocoder import Geocoder, GeocoderError
 from time import mktime
 
@@ -12,8 +13,9 @@ import datetime
 import json
 import os
 
-REQ_KEYS = ['lat', 'lng', 'bssid', 'ssid', 'uuid']
+PAGE_SIZE = 10
 
+REQ_KEYS = ['lat', 'lng', 'bssid', 'ssid', 'uuid']
 
 def setup_app():
     app = Flask(__name__)
@@ -29,21 +31,31 @@ app, db = setup_app()
 
 class GeoIP(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    lat = db.Column(db.String(80))
-    lng = db.Column(db.String(80))
+    
+    lat = db.Column(db.Float())
+    lng = db.Column(db.Float())
+    loc = db.Column(db.string(250))
+    
     bssid = db.Column(db.String(80))
     ssid = db.Column(db.String(80))
     uuid = db.Column(db.String(80))
-    ip = db.Column(db.String(80))
+
+    ip = db.Column(postgresql.INET)
+    remote_addr = db.Column(postgresql.INET)
+    
     created_at = db.Column(db.DateTime, default=datetime.datetime.now)
 
     def __init__(self, **kwargs):
         self.lat = kwargs['lat']
         self.lng = kwargs['lng']
+        self.loc =  _reverse_geo(self.lat, self.lng)
+
         self.bssid = kwargs['bssid']
         self.ssid = kwargs['ssid']
         self.uuid = kwargs['uuid']
+        
         self.ip = kwargs['ip']
+        self.remote_addr = request.remote_addr
 
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -84,21 +96,26 @@ def _apply_transforms(transforms, d):
 @app.route("/add", methods=["GET", "POST"])
 def add():
     """
-        Endpoint to process a geo-ip request. 
+        Endpoint to process a geo-ip request.
+        Input values: {
+            'lat' : Float, req,
+            'lng' : Float, req,
+            'ip' : String, req
+            'bssid' : String, req,
+            'ssid' : String, req,
+            'uuid' : String, req,
+        }
     """
     
     data = _get_data()
 
     res = {key : data.get(key) for key in REQ_KEYS}
-
-    if not all(res.values()):
-        res['success'] = False
-    else:
-        res['ip'] = request.remote_addr
-        res['success'] = True
-        geoip_obj = GeoIP(**res)
-        db.session.add(geoip_obj)
-        db.session.commit()
+    
+    success = all(res.values()) # all keys required
+    res[success] = success
+    
+    if success:
+        _write_db(res)
     
     return jsonify(**res)
 
@@ -115,17 +132,33 @@ def _get_data():
 
     elif request.method == "GET":
         data = request.args
-
-    print "Recieved data: ", data
         
     return data
 
+def _write_db(d):
+    geoip_obj = GeoIP(**d)
+    db.session.add(geoip_obj)
+    db.session.commit()
+
 @app.route("/history/<uuid>")
 def history(uuid):
-    history = GeoIP.query.filter(GeoIP.uuid==uuid).order_by(GeoIP.created_at.desc()).all()
+    page = _get_page()
+    history = GeoIP.query.filter(GeoIP.uuid==uuid).\
+        order_by(GeoIP.created_at.desc()).\
+            limit(PAGE_SIZE).offset(page*PAGE_SIZE).all()
+
     r = make_response(json.dumps(map(lambda geoip: geoip.as_clean_json(), history)))
     r.mimetype = 'application/json'
+    
     return r
+
+def _get_page():
+    try:
+        page = int(request.args.get("page", 1))
+    except ValueError:
+        page = 1
+    return page - 1
+
 
 if __name__ == "__main__":
     host = "0.0.0.0"
