@@ -1,4 +1,3 @@
-
 def atoi(val, default=None):
     return _convert(val, default, int)
 
