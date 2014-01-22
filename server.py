@@ -42,8 +42,8 @@ class GeoIP(db.Model):
     ssid = db.Column(db.String(80))
     uuid = db.Column(db.String(80))
 
-    ip = db.Column(postgresql.INET)
-    remote_addr = db.Column(postgresql.INET)
+    ip = db.Column(db.String(80))#postgresql.INET)
+    remote_addr = db.Column(db.String(80))#postgresql.INET)
     
     created_at = db.Column(db.DateTime, default=datetime.datetime.now)
 
