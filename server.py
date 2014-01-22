@@ -15,6 +15,7 @@ import json
 import os
 
 PAGE_SIZE = 10
+NO_LOCATION = "No location found!"
 
 REQ_KEYS = ['lat', 'lng', 'bssid', 'ssid', 'uuid', 'ip']
 
@@ -66,7 +67,7 @@ class GeoIP(db.Model):
         try:
             return Geocoder.reverse_geocode(lat, lng).formatted_address
         except GeocoderError:
-            return "No location information!"
+            return NO_LOCATION
 
     def as_clean_json(self):
         as_dict = self.as_dict()
