@@ -2,7 +2,7 @@ import os
 import sys
 import site
 
-ROOT_DIR = "/home/jblum"
+ROOT_DIR = os.environ.get("GEOIP_ROOT", "/home/jblum")
 
 sys.path.insert(0, '%s/geoip' % ROOT_DIR)
 
