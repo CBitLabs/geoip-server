@@ -109,7 +109,7 @@ def add():
     apply_transforms(transforms, res)
     success = _isValid(res)
     res["success"] = success
-    
+
     if success:
         res = _write_db(res)
     
@@ -141,7 +141,8 @@ def _write_db(d):
     geoip_obj = GeoIP(**d)
     db.session.add(geoip_obj)
     db.session.commit()
-    return geoip_obj.as_dict()
+    d.update(geoip_obj.as_dict())
+    return d
 
 @app.route("/history/<uuid>")
 def history(uuid):
