@@ -160,8 +160,8 @@ def history_query(uuid, page):
             limit(PAGE_SIZE).offset(page*PAGE_SIZE).all()
 
 def _get_page():
-    page = atoi(request.args.get("page"), 1)
-    return page - 1
+    page = atoi(request.args.get("page"), 0)
+    return max(page - 1, 0)
 
 if __name__ == "__main__":
     host = "0.0.0.0"
