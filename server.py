@@ -7,17 +7,14 @@ from flask import Flask, request, jsonify, make_response
 from sqlalchemy.dialects import postgresql
 from pygeocoder import Geocoder, GeocoderError
 from time import mktime
-from util import atof, atoi, apply_transforms
+from constants import *
 
 import humanize
 import datetime
 import json
 import os
 
-PAGE_SIZE = 10
-NO_LOCATION = "No location found!"
-
-REQ_KEYS = ['lat', 'lng', 'bssid', 'ssid', 'uuid', 'ip']
+import util
 
 def setup_app():
     app = Flask(__name__)
@@ -77,7 +74,7 @@ class GeoIP(db.Model):
             ('created_at', lambda geoip: str(geoip['created_at'])),
         ]
 
-        apply_transforms(transforms, as_dict)
+        util.apply_transforms(transforms, as_dict)
         return as_dict
 
     def __repr__(self):
@@ -88,31 +85,30 @@ def add():
     """
         Endpoint to process a geo-ip request.
         Input values: {
-            'lat' : Float, req,
-            'lng' : Float, req,
-            'ip' : String, req
-            'bssid' : String, req,
-            'ssid' : String, req,
-            'uuid' : String, req,
+            'lat' : req,
+            'lng' : req,
+            'ip' : req,
+            'bssid' : req,
+            'ssid' : req,
+            'uuid' : req,
         }
     """
     
     data = _get_data()
-
     res = {key : data.get(key) for key in REQ_KEYS}
+    res = _process_res(res)
     
-    transforms = [
-        ('lat', lambda d: atof(d['lat'])),
-        ('lng', lambda d: atof(d['lng'])),
-    ]
+    return jsonify(**res)
 
-    apply_transforms(transforms, res)
-    success = _isValid(res)
-    res["success"] = success
+@app.route("/dnsadd", methods=["GET", "POST"])
+def dns_add():
+    """
+        Endpoint to process dns forwarding
+    """
+    data = _get_data()
+    res = util.parse_dns(data)
+    res = _process_res(res)
 
-    if success:
-        res = _write_db(res)
-    
     return jsonify(**res)
 
 def _get_data():
@@ -131,7 +127,22 @@ def _get_data():
         
     return data
 
-def _isValid(res):
+def _process_res(res):
+    transforms = [
+        ('lat', lambda d: util.atof(d['lat'])),
+        ('lng', lambda d: util.atof(d['lng'])),
+    ]
+
+    util.apply_transforms(transforms, res)
+    success = _is_valid(res)
+    res["success"] = success
+
+    if success:
+        res = _write_db(res)
+
+    return res
+
+def _is_valid(res):
     for k, v in res.iteritems():
         if v is None:
             return False
@@ -160,7 +171,7 @@ def history_query(uuid, page):
             limit(PAGE_SIZE).offset(page*PAGE_SIZE).all()
 
 def _get_page():
-    page = atoi(request.args.get("page"), 0)
+    page = util.atoi(request.args.get("page"), 0)
     return max(page - 1, 0)
 
 if __name__ == "__main__":

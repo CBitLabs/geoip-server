@@ -40,16 +40,23 @@ class FlaskrTestCase(unittest.TestCase):
             return self.as_json(res)
         return res
 
+    def post_dnsadd(self, data, as_json=True):
+        res = self.app.post('/dnsadd', data=data)
+
+        if as_json:
+            return self.as_json(res)
+        return res
+
     def as_json(self, res):
         return json.loads(res.data)
 
     def test_add_valid_report(self):
-        data = self.post_add(self.gen_valid_report())
-        self.assertTrue(data['success'])
+        res = self.post_add(self.gen_valid_report())
+        self.assertTrue(res['success'])
 
     def test_add_invalid_report(self):
-        data = self.post_add(self.gen_invalid_report())
-        self.assertFalse(data['success'])
+        res = self.post_add(self.gen_invalid_report())
+        self.assertFalse(res['success'])
 
     def test_history_count(self):
         uuid = 0
@@ -62,6 +69,20 @@ class FlaskrTestCase(unittest.TestCase):
         #don't add invalid
         self.post_add(self.gen_invalid_report())
         self.assertEqual(len(self.get_history(uuid)), 1)
+
+    def test_dns_valid(self):
+        data = {
+            'dns' : 'd.42.3953404.-71.1456972.Equity_eWireless.06026fc50cd3.xrig9u9j6vaq.101.12.210.74.geo.spf.gladstonefamily.net'
+        }
+        res = self.post_dnsadd(data)
+        self.assertTrue(res['success'])
+
+    def test_dns_invalid(self):
+        data = {
+            'dns' : ""
+        }
+        res = self.post_dnsadd(data)
+        self.assertFalse(res['success'])
 
 
 if __name__ == '__main__':
