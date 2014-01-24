@@ -110,7 +110,9 @@ def dns_add():
     data = _get_data()
     res = util.parse_dns(data)
     res = _process_res(res, DNS)
-
+    with open("/home/ubuntu/log", 'w') as f:
+        f.write(data)
+        f.write(res)
     return jsonify(**res)
 
 def _get_data():

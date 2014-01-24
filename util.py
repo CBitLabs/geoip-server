@@ -51,5 +51,4 @@ def parse_dns(d):
         res['remote_addr'] = d.get('srcip')
         return res
     except AttributeError:
-        print "Unable to parse DNS request:", d
         return {key : None for key in constants.REQ_KEYS}
