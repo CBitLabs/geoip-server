@@ -28,7 +28,7 @@ class FlaskrTestCase(unittest.TestCase):
 
     def gen_valid_dns_request(self):
         return {
-            'qname' : 'd.42.3953404.-71.1456972.Equity_eWireless.06026fc50cd3.xrig9u9j6vaq.101.12.210.74.geo.spf.gladstonefamily.net',
+            'qname' : 'd.42.3953404.-71.1456972.Equity_eWireless.06026fc50cd3.xrig9u9j6vaq.101.12.210.74.geo.cbitlabs.com',
             'srcip' : '192.168.1.1',
         }
 
