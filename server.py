@@ -42,6 +42,7 @@ class GeoIP(db.Model):
     ip = db.Column(db.String(80))#postgresql.INET)
     remote_addr = db.Column(db.String(80))#postgresql.INET)
     
+    datasrc = db.Column(db.String(80))
     created_at = db.Column(db.DateTime, default=datetime.datetime.now)
 
     def __init__(self, **kwargs):
@@ -55,6 +56,7 @@ class GeoIP(db.Model):
         
         self.ip = kwargs['ip']
         self.remote_addr = kwargs.get("remote_addr", request.remote_addr)
+        self.datasrc = kwargs['datasrc']
 
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
@@ -96,7 +98,7 @@ def add():
     
     data = _get_data()
     res = {key : data.get(key) for key in REQ_KEYS}
-    res = _process_res(res)
+    res = _process_res(res, HTTP)
     
     return jsonify(**res)
 
@@ -107,7 +109,7 @@ def dns_add():
     """
     data = _get_data()
     res = util.parse_dns(data)
-    res = _process_res(res)
+    res = _process_res(res, DNS)
 
     return jsonify(**res)
 
@@ -127,7 +129,7 @@ def _get_data():
         
     return data
 
-def _process_res(res):
+def _process_res(res, src):
     transforms = [
         ('lat', lambda d: util.atof(d['lat'])),
         ('lng', lambda d: util.atof(d['lng'])),
@@ -136,6 +138,7 @@ def _process_res(res):
     util.apply_transforms(transforms, res)
     success = _is_valid(res)
     res["success"] = success
+    res["datasrc"] = src
 
     if success:
         res = _write_db(res)
