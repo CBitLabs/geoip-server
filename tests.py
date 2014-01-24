@@ -26,6 +26,17 @@ class FlaskrTestCase(unittest.TestCase):
         del report[random.choice(server.REQ_KEYS)]
         return report
 
+    def gen_valid_dns_request(self):
+        return {
+            'qname' : 'd.42.3953404.-71.1456972.Equity_eWireless.06026fc50cd3.xrig9u9j6vaq.101.12.210.74.geo.spf.gladstonefamily.net',
+            'srcip' : '192.168.1.1',
+        }
+
+    def gen_invalid_dns_request(self):
+        data = self.gen_valid_report()
+        data['qname'] = ''
+        return data
+
     def get_history(self, uuid, as_json=True):
         res = self.app.get('/history/%s' % uuid)
         
@@ -71,17 +82,11 @@ class FlaskrTestCase(unittest.TestCase):
         self.assertEqual(len(self.get_history(uuid)), 1)
 
     def test_dns_valid(self):
-        data = {
-            'dns' : 'd.42.3953404.-71.1456972.Equity_eWireless.06026fc50cd3.xrig9u9j6vaq.101.12.210.74.geo.spf.gladstonefamily.net'
-        }
-        res = self.post_dnsadd(data)
+        res = self.post_dnsadd(self.gen_valid_dns_request())
         self.assertTrue(res['success'])
 
     def test_dns_invalid(self):
-        data = {
-            'dns' : ""
-        }
-        res = self.post_dnsadd(data)
+        res = self.post_dnsadd(self.gen_invalid_dns_request())
         self.assertFalse(res['success'])
 
 

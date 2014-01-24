@@ -29,20 +29,27 @@ def parse_dns(d):
     """
         input:
         d: input dictionary with form data
-            expect {dns : dns string}
+            expect {
+                qname : dns string,
+                srcip : originating IP address
+            }
         output:
         {
-            'lat' : req,
-            'lng' : req,
-            'ip' : req,
-            'bssid' : req,
-            'ssid' : req,
-            'uuid' : req,
+            'lat' : lat,
+            'lng' : lng,
+            'ip' : ip,
+            'bssid' : bssid,
+            'ssid' : ssid,
+            'uuid' : uuid,
+            'remote_addr' : srcip
         }
 
         where keys are None if they cannot be parsed
     """
     try:
-        return re.match(DNS_EXPR, d.get("dns", "")).groupdict()
+        res = re.match(DNS_EXPR, d.get("qname", "")).groupdict()
+        res['remote_addr'] = d.get('srcip')
+        return res
     except AttributeError:
+        # print "Unable to parse DNS request:", d
         return {key : None for key in constants.REQ_KEYS}

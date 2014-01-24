@@ -54,7 +54,7 @@ class GeoIP(db.Model):
         self.uuid = kwargs['uuid']
         
         self.ip = kwargs['ip']
-        self.remote_addr = request.remote_addr
+        self.remote_addr = kwargs.get("remote_addr", request.remote_addr)
 
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
