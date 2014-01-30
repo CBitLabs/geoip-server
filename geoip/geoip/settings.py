@@ -30,6 +30,9 @@ if LOCAL:  # export LOCAL=1
     DEBUG = True
     POSTGRES = POSTGRES_LOCAL
 
+
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
