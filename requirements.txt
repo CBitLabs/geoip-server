@@ -4,3 +4,8 @@ psycopg2==2.5.2
 humanize==0.5
 pygeocoder==1.2.1.1
 alembic==0.6.2
+Django==1.6.1
+gunicorn==0.17.2
+django-annoying==0.7.6
+django-admin-bootstrapped==0.3.2
+South==0.8.4
