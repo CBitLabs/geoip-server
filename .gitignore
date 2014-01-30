@@ -53,4 +53,4 @@ env/
 *.csv
 
 config.py
-
+.DS_Store
