@@ -16,7 +16,7 @@ def extract_ips(in_file=IN_FILE, out_file=OUT_FILE):
             except IndexError:
                 pass
         ips = filter(lambda ip: len(ip) > 0, ips)
-        f_out.write(",".join(ips))
+        f_out.write(",\n".join(ips))
 
 if __name__ == "__main__":
     extract_ips()
