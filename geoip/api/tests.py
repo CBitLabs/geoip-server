@@ -57,13 +57,13 @@ class ApiTestCase(TestCase):
     @as_json
     @assert_res_code
     def post_add(self, data):
-        res = self.client.post('/add/', data=data)
+        res = self.client.post('/add', data=data)
         return res
 
     @as_json
     @assert_res_code
     def post_dnsadd(self, data):
-        res = self.client.post('/dnsadd/', data=data)
+        res = self.client.post('/dnsadd', data=data)
         return res
 
     def test_add_valid_report(self):

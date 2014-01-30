@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from api.models import GeoIP
 
@@ -12,6 +13,7 @@ def json_response(res):
                         content_type="application/json")
 
 
+@csrf_exempt
 @ajax_request
 def add(request):
     """
@@ -26,21 +28,34 @@ def add(request):
         }
     """
 
-    data = dict(request.REQUEST)
+    data = _get_data(request)
     res = {key: data.get(key) for key in REQ_KEYS}
     res = _process_res(request, res, HTTP)
     return res
 
+
+@csrf_exempt
 @ajax_request
 def dns_add(request):
     """
         Endpoint to process dns forwarding
     """
-    data = dict(request.REQUEST)
+    data = _get_data(request)
     res = util.parse_dns(data)
     res = _process_res(request, res, DNS)
 
     return res
+
+
+def _get_data(request):
+    if request.method == POST:
+        try:
+            data = json.loads(request.body)
+        except ValueError:
+            data = {}
+    if not len(data):
+        data = dict(request.REQUEST)
+    return data
 
 
 def _process_res(request, res, src):
