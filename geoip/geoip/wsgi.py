@@ -10,7 +10,6 @@ https://docs.djangoproject.com/en/1.6/howto/deployment/wsgi/
 import os
 import sys
 import site
-from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geoip.settings")
 
@@ -28,5 +27,6 @@ if not settings.DEBUG:
         "%s/.virtualenvs/geoip/bin/activate_this.py" % ROOT_DIR)
     execfile(activate_env, dict(__file__=activate_env))
 
+from django.conf import settings
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
