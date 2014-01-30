@@ -9,3 +9,4 @@ gunicorn==0.17.2
 django-annoying==0.7.6
 django-admin-bootstrapped==0.3.2
 South==0.8.4
+django-debug-toolbar==1.0.1

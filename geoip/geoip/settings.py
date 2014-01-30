@@ -64,10 +64,14 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
 
     # third party
     'gunicorn',
     'south',
+
+    # geoip
+    'api',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -84,7 +88,7 @@ TEMPLATE_DIRS = (
     # or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    (BASE_DIR, "templates"),
+    os.path.join(BASE_DIR, "templates"),
 )
 
 ROOT_URLCONF = 'geoip.urls'
