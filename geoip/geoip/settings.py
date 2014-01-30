@@ -35,7 +35,7 @@ if LOCAL:  # export LOCAL=1
 
 TEMPLATE_DEBUG = DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 ADMINS = (
     ('jblum', 'jblum@cbitlabs.com'),
