@@ -17,7 +17,7 @@ LOCAL = os.environ.get("LOCAL")
 if not LOCAL:
     ROOT_DIR = os.environ.get("GEOIP_ROOT", "/home/ubuntu")
 
-    sys.path.insert(0, '%s/geoip' % ROOT_DIR)
+    sys.path.insert(0, '%s/geoip/geoip' % ROOT_DIR)
 
     # Add the site-packages of the chosen virtualenv to work with
     site.addsitedir(
