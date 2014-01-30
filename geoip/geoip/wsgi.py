@@ -12,8 +12,9 @@ import sys
 import site
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geoip.settings")
+LOCAL = os.environ.get("LOCAL")
 
-if not settings.DEBUG:
+if not LOCAL:
     ROOT_DIR = os.environ.get("GEOIP_ROOT", "/home/ubuntu")
 
     sys.path.insert(0, '%s/geoip' % ROOT_DIR)
