@@ -7,12 +7,12 @@ import re
 
 
 EXPRS = {
-    "float": "[-+]?\d*\.\d+|\d+",
-    "ip": "[0-9]+(?:\.[0-9]+){3}",
-    "ssid": "[^.]+"
+    "float": r"[-+]?\d*\.\d+|\d+",
+    "ipv4": r"[0-9]+(?:\.[0-9]+){3}",
+    "ssid": r"[^.]+"
 }
 
-DNS_EXPR = r"(?P<resolver>[sd]{1})\.(?P<lat>%(float)s)\.(?P<lng>%(float)s)\.(?P<ssid>%(ssid)s)\.(?P<bssid>\w+)\.(?P<uuid>\w+)\.(?P<ip>%(ip)s)\..*" % EXPRS
+DNS_EXPR = r"(?P<resolver>[sd]{1})\.(?P<lat>%(float)s)\.(?P<lng>%(float)s)\.(?P<ssid>%(ssid)s)\.(?P<bssid>\w+)\.(?P<uuid>\w+)\.(?P<ip>%(ipv4)s)\..*" % EXPRS
 
 
 def atoi(val, default=None):
@@ -64,15 +64,6 @@ def parse_dns(d, expr=DNS_EXPR):
         return {key: None for key in constants.REQ_KEYS}
 
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
 def get_datasrc(res):
     """
         datasrc type can be:
@@ -83,7 +74,7 @@ def get_datasrc(res):
     return "%s-%s" % (constants.DNS, res.get("resolver", ""))
 
 
-def process_res(request, res, src):
+def process_res(request, res, src, remote_addr=None):
     transforms = [
         ('lat', lambda d: atof(d['lat'])),
         ('lng', lambda d: atof(d['lng'])),
@@ -92,7 +83,11 @@ def process_res(request, res, src):
     apply_transforms(transforms, res)
     success = is_valid(res)
     res["datasrc"] = src
-    res["remote_addr"] = get_client_ip(request)
+
+    if remote_addr is None:
+        remote_addr = get_client_ip(request)
+    res["remote_addr"] = remote_addr
+
     if success:
         res["loc"] = _reverse_geo(res["lat"], res["lng"])
         res = write_db(res)
@@ -129,3 +124,12 @@ def _validate(res):
     valid_fields = set(
         map(lambda field: field.name, models.GeoIP._meta.fields))
     return {k: v for k, v in res.iteritems() if k in valid_fields}
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip

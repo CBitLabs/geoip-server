@@ -46,7 +46,7 @@ def dns_add(request):
     data = _get_data(request)
     res = util.parse_dns(data)
     datasrc = util.get_datasrc(res)
-    res = util.process_res(request, res, constants.DNS)
+    res = util.process_res(request, res, datasrc)
 
     return res
 

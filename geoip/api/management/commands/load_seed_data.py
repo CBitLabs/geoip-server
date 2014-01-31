@@ -1,14 +1,14 @@
 from django.core.management.base import BaseCommand
 
-from api.models import GeoIP
 import api.util as util
 
 import csv
 import glob
 import fileinput
+import datetime
 
 IN_FILE = "*.csv"
-FIELDS = ["timestamp", "srcip", "qname"]
+FIELDS = ["created_at", "srcip", "qname"]
 
 DNS_EXPR_OLD = r"(?P<resolver>[sd]{1})\.(?P<lat>%(float)s)\.(?P<lng>%(float)s)\.(?P<ssid>%(ssid)s)\.(?P<bssid>\w+)\..*" % util.EXPRS
 
@@ -23,27 +23,32 @@ class Command(BaseCommand):
         filepath = "%s/%s" % (args[0], IN_FILE)
 
         self.stdout.write("Looking for data in %s" % filepath)
-        valid = 0
-        invalid = 0
 
         inp = fileinput.input(glob.glob(filepath))
         reader = csv.DictReader(inp, fieldnames=FIELDS)
 
-        for line in reader:
+        for index, line in enumerate(reader):
             geoip = self.extract_record(line)
             if util.is_valid(geoip):
-                valid += 1
-            else:
-                print line
-                invalid += 1
+                datasrc = util.get_datasrc(geoip)
+                geoip = util.process_res(
+                    None, geoip, datasrc, remote_addr=line["srcip"])
+
+            if not index % 100:
+                self.stdout.write("Updated %d entries" % index)
 
         self.stdout.write(
-            'Update complete. valid: %d, invalid: %d.\n' % (valid, invalid))
+            'Update complete')
 
     def extract_record(self, line):
 
-        geoip = util.parse_dns(line, DNS_EXPR_OLD)
+        geoip = util.parse_dns(line)
         if not util.is_valid(geoip):
-            geoip = util.parse_dns(line)
+            geoip = util.parse_dns(line, DNS_EXPR_OLD)
+            geoip["ip"] = line["srcip"]
+            geoip["created_at"] = self.extract_datetime(line)
 
         return geoip
+
+    def extract_datetime(self, line):
+        return datetime.datetime.fromtimestamp(int(line["created_at"]))
