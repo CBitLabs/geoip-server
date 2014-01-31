@@ -17,7 +17,7 @@ LOCAL = os.environ.get("LOCAL")
 if not LOCAL:
     ROOT_DIR = os.environ.get("GEOIP_ROOT", "/home/ubuntu")
 
-    sys.path.insert(0, '%s/geoip/geoip' % ROOT_DIR)
+    sys.path.insert(0, '%s/geoip-server/geoip' % ROOT_DIR)
 
     # Add the site-packages of the chosen virtualenv to work with
     site.addsitedir(
@@ -28,6 +28,5 @@ if not LOCAL:
         "%s/.virtualenvs/geoip/bin/activate_this.py" % ROOT_DIR)
     execfile(activate_env, dict(__file__=activate_env))
 
-from django.conf import settings
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
