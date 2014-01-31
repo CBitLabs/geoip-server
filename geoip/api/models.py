@@ -1,10 +1,7 @@
 from django.db import models
 
-from pygeocoder import Geocoder, GeocoderError
-
 from api.constants import NO_LOC
 
-import util
 import datetime
 import humanize
 
@@ -30,11 +27,8 @@ class GeoIP(models.Model):
                 for field in self._meta.fields}
 
     @staticmethod
-    def _reverse_geo(lat, lng):
-        try:
-            return Geocoder.reverse_geocode(lat, lng).formatted_address
-        except GeocoderError:
-            return NO_LOC
+    def get_valid_keys():
+        return as_dict.keys()
 
     def as_clean_dict(self):
         as_dict = self.as_dict()
@@ -46,6 +40,7 @@ class GeoIP(models.Model):
              str(geoip['created_at'])),
         ]
 
+        import util
         util.apply_transforms(transforms, as_dict)
         return as_dict
 

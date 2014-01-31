@@ -5,6 +5,8 @@ import random
 import json
 
 IP = "192.168.1.1"
+UUID = "xrig9u9j6vaq"
+
 
 def assert_res_code(func, code=200):
     def wrapped(self, *args, **kwargs):
@@ -12,6 +14,7 @@ def assert_res_code(func, code=200):
         self.assertEqual(res.status_code, code)
         return res
     return wrapped
+
 
 def as_json(func):
     def wrapped(self, *args, **kwargs):
@@ -30,6 +33,7 @@ class ApiTestCase(TestCase):
         res = {key: 0 for key in REQ_KEYS}
         res['ip'] = IP
         res['remote_addr'] = IP
+        res['uuid'] = UUID
         return res
 
     def gen_invalid_report(self):
@@ -66,6 +70,9 @@ class ApiTestCase(TestCase):
         res = self.client.post('/dnsadd', data=data)
         return res
 
+    def assert_history(self, count, uuid=UUID):
+        self.assertEqual(len(self.get_history(uuid)), count)
+
     def test_add_valid_report(self):
         res = self.post_add(self.gen_valid_report())
         self.assertTrue(res['success'])
@@ -74,18 +81,6 @@ class ApiTestCase(TestCase):
         res = self.post_add(self.gen_invalid_report())
         self.assertFalse(res['success'])
 
-    def test_history_count(self):
-        uuid = 0
-        self.assertEqual(len(self.get_history(uuid)), 0)
-
-        # add valid report
-        self.post_add(self.gen_valid_report())
-        self.assertEqual(len(self.get_history(uuid)), 1)
-
-        # don't add invalid
-        self.post_add(self.gen_invalid_report())
-        self.assertEqual(len(self.get_history(uuid)), 1)
-
     def test_dns_valid(self):
         res = self.post_dnsadd(self.gen_valid_dns_request())
         self.assertTrue(res['success'])
@@ -93,3 +88,23 @@ class ApiTestCase(TestCase):
     def test_dns_invalid(self):
         res = self.post_dnsadd(self.gen_invalid_dns_request())
         self.assertFalse(res['success'])
+
+    def test_history_count(self):
+        count = 0
+        self.assert_history(count)
+
+        # add valid report
+        self.post_add(self.gen_valid_report())
+        count += 1
+        self.assert_history(count)
+
+        self.post_dnsadd(self.gen_valid_dns_request())
+        count += 1
+        self.assert_history(count)
+
+        # don't add invalid
+        self.post_add(self.gen_invalid_report())
+        self.assert_history(count)
+
+        self.post_dnsadd(self.gen_invalid_dns_request())
+        self.assert_history(count)

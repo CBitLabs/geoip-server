@@ -1,5 +1,10 @@
-import re
+from pygeocoder import Geocoder, GeocoderError
+
+import api.models as models
+
 import constants
+import re
+
 
 EXPRS = {
     "float": "[-+]?\d*\.\d+|\d+",
@@ -7,7 +12,7 @@ EXPRS = {
     "ssid": "[^.]+"
 }
 
-DNS_EXPR = r"(.{1})\.(?P<lat>%(float)s)\.(?P<lng>%(float)s)\.(?P<ssid>%(ssid)s)\.(?P<bssid>\w+)\.(?P<uuid>\w+)\.(?P<ip>%(ip)s)\..*" % EXPRS
+DNS_EXPR = r"(?P<resolver>[sd]{1})\.(?P<lat>%(float)s)\.(?P<lng>%(float)s)\.(?P<ssid>%(ssid)s)\.(?P<bssid>\w+)\.(?P<uuid>\w+)\.(?P<ip>%(ip)s)\..*" % EXPRS
 
 
 def atoi(val, default=None):
@@ -30,7 +35,7 @@ def apply_transforms(transforms, d):
         d[key] = func(d)
 
 
-def parse_dns(d):
+def parse_dns(d, expr=DNS_EXPR):
     """
         input:
         d: input dictionary with form data
@@ -52,7 +57,7 @@ def parse_dns(d):
         where keys are None if they cannot be parsed
     """
     try:
-        res = re.match(DNS_EXPR, d.get("qname", "")).groupdict()
+        res = re.match(expr, d.get("qname", "")).groupdict()
         res['remote_addr'] = d.get('srcip')
         return res
     except AttributeError:
@@ -66,3 +71,61 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def get_datasrc(res):
+    """
+        datasrc type can be:
+            dns
+            dns-s
+            dns-d
+    """
+    return "%s-%s" % (constants.DNS, res.get("resolver", ""))
+
+
+def process_res(request, res, src):
+    transforms = [
+        ('lat', lambda d: atof(d['lat'])),
+        ('lng', lambda d: atof(d['lng'])),
+    ]
+
+    apply_transforms(transforms, res)
+    success = is_valid(res)
+    res["datasrc"] = src
+    res["remote_addr"] = get_client_ip(request)
+    if success:
+        res["loc"] = _reverse_geo(res["lat"], res["lng"])
+        res = write_db(res)
+
+    res["success"] = success
+    return res
+
+
+def is_valid(res):
+    for k, v in res.iteritems():
+        if v is None:
+            return False
+    return True
+
+
+def _reverse_geo(lat, lng):
+    try:
+        return Geocoder.reverse_geocode(lat, lng).formatted_address
+    except GeocoderError:
+        return constants.NO_LOC
+
+
+def write_db(d):
+    d = _validate(d)
+    geoip = models.GeoIP(**d)
+    geoip.save()
+
+    d.update(geoip.as_clean_dict())
+    return d
+
+
+def _validate(res):
+    # clean out entries not part of model
+    valid_fields = set(
+        map(lambda field: field.name, models.GeoIP._meta.fields))
+    return {k: v for k, v in res.iteritems() if k in valid_fields}

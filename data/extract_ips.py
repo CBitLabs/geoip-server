@@ -5,6 +5,7 @@ import fileinput
 IN_FILE = "*.csv"
 OUT_FILE = "ip_list.csv"
 
+
 def extract_ips(in_file=IN_FILE, out_file=OUT_FILE):
     ips = set([])
     with open(out_file, 'w') as f_out:
