@@ -1,5 +1,4 @@
 from django.test import TestCase, Client
-from api.constants import *
 
 import random
 import json
@@ -30,15 +29,18 @@ class ApiTestCase(TestCase):
         self.client = Client()
 
     def gen_valid_report(self):
-        res = {key: 0 for key in REQ_KEYS}
-        res['ip'] = IP
-        res['remote_addr'] = IP
-        res['uuid'] = UUID
-        return res
+        return {
+            "lat": "42.3557695",
+            "lng": "-71.0985843",
+            "ssid": "MIT_GUEST",
+            "bssid": "0021d84976ee",
+            "uuid": UUID,
+            "ip": IP,
+        }
 
     def gen_invalid_report(self):
         report = self.gen_valid_report()
-        del report[random.choice(REQ_KEYS)]
+        del report[random.choice(report.keys())]
         return report
 
     def gen_valid_dns_request(self):
@@ -136,3 +138,13 @@ class ApiTestCase(TestCase):
 
         self.post_dnsadd(self.gen_invalid_dns_request())
         self.assert_history(count)
+        return count
+
+    def test_history_order(self):
+        """
+            test correct order by filter for history
+        """
+        self.test_history_count()
+        history = self.get_history(UUID)
+        self.assertGreaterEqual(history[0]['created_at'],
+                           history[-1]['created_at'])
