@@ -70,23 +70,51 @@ class ApiTestCase(TestCase):
         res = self.client.post('/dnsadd', data=data)
         return res
 
+    @as_json
+    @assert_res_code
+    def get_add(self, data):
+        res = self.client.get('/add', data=data)
+        return res
+
+    @as_json
+    @assert_res_code
+    def get_dnsadd(self, data):
+        res = self.client.get('/dnsadd', data=data)
+        return res
+
     def assert_history(self, count, uuid=UUID):
         self.assertEqual(len(self.get_history(uuid)), count)
 
-    def test_add_valid_report(self):
+    def test_post_valid_report(self):
         res = self.post_add(self.gen_valid_report())
         self.assertTrue(res['success'])
 
-    def test_add_invalid_report(self):
+    def test_post_invalid_report(self):
         res = self.post_add(self.gen_invalid_report())
         self.assertFalse(res['success'])
 
-    def test_dns_valid(self):
+    def test_postdns_valid(self):
         res = self.post_dnsadd(self.gen_valid_dns_request())
         self.assertTrue(res['success'])
 
-    def test_dns_invalid(self):
+    def test_postdns_invalid(self):
         res = self.post_dnsadd(self.gen_invalid_dns_request())
+        self.assertFalse(res['success'])
+
+    def test_get_valid_report(self):
+        res = self.get_add(self.gen_valid_report())
+        self.assertTrue(res['success'])
+
+    def test_get_invalid_report(self):
+        res = self.get_add(self.gen_invalid_report())
+        self.assertFalse(res['success'])
+
+    def test_getdns_valid(self):
+        res = self.get_dnsadd(self.gen_valid_dns_request())
+        self.assertTrue(res['success'])
+
+    def test_getdns_invalid(self):
+        res = self.get_dnsadd(self.gen_invalid_dns_request())
         self.assertFalse(res['success'])
 
     def test_history_count(self):

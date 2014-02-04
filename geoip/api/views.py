@@ -52,11 +52,12 @@ def dns_add(request):
 
 
 def _get_data(request):
+    data = {}
     if request.method == constants.POST:
         try:
             data = json.loads(request.body)
         except ValueError:
-            data = {}
+            pass
     if not len(data):
         data = dict(request.REQUEST)
     return data

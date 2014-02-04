@@ -81,12 +81,13 @@ def process_res(request, res, src, remote_addr=None):
     ]
 
     apply_transforms(transforms, res)
-    success = is_valid(res)
     res["datasrc"] = src
 
     if remote_addr is None:
         remote_addr = get_client_ip(request)
     res["remote_addr"] = remote_addr
+
+    success = is_valid(res)
 
     if success:
         res["loc"] = _reverse_geo(res["lat"], res["lng"])
