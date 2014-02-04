@@ -65,7 +65,7 @@ def _get_data(request):
 def history(request, uuid):
     page, offset = _get_page(request)
     history = GeoIP.objects.filter(
-        uuid=uuid).order_by('created_at')[offset:constants.PAGE_SIZE]
+        uuid=uuid).order_by('-created_at')[offset:constants.PAGE_SIZE]
 
     r = map(lambda geoip: geoip.as_clean_dict(), history)
     return json_response(r)
