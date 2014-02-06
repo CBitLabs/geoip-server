@@ -30,7 +30,7 @@ QUERY = """SELECT COALESCE(SUM(spam_count), 0),
                 COALESCE(SUM(bot_freq), 0), 
                 COALESCE(SUM(unexp_count), 0), 
                 COALESCE(SUM(unexp_freq), 0) 
-            FROM ip_events WHERE address=INET '%(ip)s';"""
+            FROM ip_events WHERE address%(op)sINET '%(ip)s';"""
 
 IN_FILE = "ip_list.csv"
 
@@ -41,10 +41,15 @@ def main():
     ips = load_ips()
 
     print "\nBuilding stats..."
-    ip_stats = get_stats(ips)
+    ip_stats, subnet_stats = get_stats(ips)
 
-    print "\nPrinting stats..."
+    print "\nPrinting IP stats..."
     print_stats(ip_stats)
+
+    print "="*60
+
+    print "\nPrinting subnet stats..."
+    print_stats(subnet_stats)
 
 
 def load_ips(in_file=IN_FILE):
@@ -57,13 +62,16 @@ def get_stats(ips):
     """walk through list of ip addresses and gather sum across events"""
     cur = get_cursor()
     ip_stats = {}
+    subnet_stats = {}
     for i, ip in enumerate(ips):
-        ip_stats[ip] = sum_query(cur, ip)
+        ip_stats[ip] = sum_query(cur, ip, "=")
+        subnet = get_subnet(ip)
+        subnet_stats[subnet] = sum_query(cur, subnet, "<<")
 
         if not i % 100:
             print "Queried %d rows." % i
 
-    return ip_stats
+    return ip_stats, subnet_stats
 
 
 def get_cursor(auth=AUTH):
@@ -73,8 +81,8 @@ def get_cursor(auth=AUTH):
     return conn.cursor()
 
 
-def sum_query(cur, ip):
-    query = make_query(ip)
+def sum_query(cur, ip, op):
+    query = make_query(ip, op)
     cur.execute(query)
 
     rows = cur.fetchall()
@@ -82,13 +90,18 @@ def sum_query(cur, ip):
     return as_dict(rows[0])
 
 
-def make_query(ip):
-    return QUERY % {'ip': ip}
+def make_query(ip, op):
+    return QUERY % {
+        'ip': ip,
+        'op': op
+    }
 
 
 def as_dict(row):
     return {k: v for k, v in zip(EVENTS, row)}
 
+def get_subnet(ip):
+    return ".".join(ip.split(".")[:-1]) + "/24"
 
 def print_stats(ip_stats):
     """
@@ -106,7 +119,7 @@ def print_stats(ip_stats):
         print_int_stat("min", event, *get_min(ip_stats, event))
         print_float_stat("avg", event, get_avg(ip_stats, event))
         print_float_stat("stdev", event, get_stdev(ip_stats, event))
-        print 
+        print
 
 
 def print_int_stat(stat, event, ip, stats_dict):
