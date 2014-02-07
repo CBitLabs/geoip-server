@@ -61,6 +61,7 @@ def main(days, use_subnet, compute_all):
 
         if use_subnet:
             print "=" * 60
+            print "=" * 60
 
             print "\nPrinting subnet stats..."
             print_stats(subnet_stats)
@@ -73,7 +74,7 @@ def main(days, use_subnet, compute_all):
 def load_ips(in_file=IN_FILE):
     with open(in_file) as f:
         reader = csv.reader(f)
-        return [row[0] for row in reader]
+        return set([row[0] for row in reader])
 
 
 def load_ip_ssid_map(in_file=IN_FILE):
@@ -97,10 +98,11 @@ def get_stats(ips, days, use_subnet):
         if not i % 100:
             print "Queried %d rows." % i
 
-    plot_stats("IP stats", ip_stats, days)
+    plot_stats("IP stats", ip_stats, days, bins=10)
 
     if use_subnet:
-        plot_stats("subnet stats", subnet_stats, days)
+        plot_stats("subnet stats", subnet_stats,
+                   days, bins=len(subnet_stats) / 10)
 
     return ip_stats, subnet_stats
 
@@ -234,7 +236,7 @@ def get_stdev(stats):
 
 def get_zero_percent(stats):
     num_zeros = len(filter(lambda x: x == 0, stats))
-    return round(num_zeros / float(len(stats)), 2)
+    return round(num_zeros / float(len(stats)), 2) * 100
 
 
 def sum_count(stats):
@@ -263,18 +265,18 @@ def get_ssid_stats(stats, days):
     print_ssid_stats(count_ips, "count")
 
 
-def get_sorted_stats(stats,ip_ssid_map,  keyword, limit=LIMIT):
-    stats = sorted(stats.iteritems(), key=lambda kv: kv[1][keyword], reverse=True)
-    return map(lambda el: (ip_ssid_map[el[0]], el[1][keyword]), stats)[:limit]
+def get_sorted_stats(stats, ip_ssid_map, keyword, limit=LIMIT):
+    stats = sorted(
+        stats.iteritems(), key=lambda kv: kv[1][keyword], reverse=True)
+    return map(lambda el: (ip_ssid_map[el[0]], el[0], el[1][keyword]), stats)[:limit]
 
 
 def print_ssid_stats(ssid_stats, keyword):
-    for ssid, val in ssid_stats:
-        print "ssid: %s, event_%s: %d" % (ssid, keyword, val)
+    for ssid, ip, val in ssid_stats:
+        print "ssid: %s, ip: %s, event_%s: %d" % (ssid, ip, keyword, val)
 
 
-def plot_stats(title, stats, days):
-    bins = len(stats) / 100
+def plot_stats(title, stats, days, bins=5):
     plot_count(title, stats, bins, days)
     plot_freq(title, stats, bins, days)
 
