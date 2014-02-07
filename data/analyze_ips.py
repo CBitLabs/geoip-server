@@ -29,15 +29,17 @@ EVENTS = [
 
 COLORS = ['b', 'g', 'r', 'c', 'm', 'y']
 
-QUERY = """SELECT COALESCE(SUM(spam_count), 0),
+SUM_QUERY = """SELECT COALESCE(SUM(spam_count), 0),
                 COALESCE(SUM(spam_freq), 0), 
                 COALESCE(SUM(bot_count), 0), 
                 COALESCE(SUM(bot_freq), 0), 
                 COALESCE(SUM(unexp_count), 0), 
                 COALESCE(SUM(unexp_freq), 0) 
-            FROM ip_events_%(days)d WHERE address%(op)sINET '%(ip)s';"""
+            FROM ip_events_%(days)d WHERE address%(op)s INET '%(ip)s';"""
 
 IN_FILE = "ip_list.csv"
+
+LIMIT = 100
 
 
 def main(days, use_subnet, compute_all):
@@ -63,6 +65,8 @@ def main(days, use_subnet, compute_all):
             print "\nPrinting subnet stats..."
             print_stats(subnet_stats)
 
+        get_ssid_stats(ip_stats, day)
+
     plt.show()
 
 
@@ -70,6 +74,12 @@ def load_ips(in_file=IN_FILE):
     with open(in_file) as f:
         reader = csv.reader(f)
         return [row[0] for row in reader]
+
+
+def load_ip_ssid_map(in_file=IN_FILE):
+    with open(in_file) as f:
+        reader = csv.reader(f)
+        return {ip: ssid for ip, ssid in reader}
 
 
 def get_stats(ips, days, use_subnet):
@@ -103,24 +113,35 @@ def get_cursor(auth=AUTH):
 
 
 def sum_query(cur, ip, op, days):
-    query = make_query(ip, op, days)
-    cur.execute(query)
-
-    rows = cur.fetchall()
+    query = make_sum_query(ip, op, days)
+    rows = _fetch(cur, query)
     assert len(rows) == 1
-    return as_dict(rows[0])
+    return sum_query_as_dict(rows[0])
 
 
-def make_query(ip, op, days):
-    return QUERY % {
+def make_sum_query(ip, op, days):
+    return _make_query(SUM_QUERY, ip, op, days)
+
+
+def sum_query_as_dict(row):
+    row_dict = {k: v for k, v in zip(EVENTS, row)}
+    row_dict['freq'] = sum_freq(row_dict)
+    row_dict['count'] = sum_count(row_dict)
+    return row_dict
+
+
+def _make_query(query, ip, op, days):
+    return query % {
         'ip': ip,
         'op': op,
         'days': days
+
     }
 
 
-def as_dict(row):
-    return {k: v for k, v in zip(EVENTS, row)}
+def _fetch(cur, query):
+    cur.execute(query)
+    return cur.fetchall()
 
 
 def get_subnet(ip):
@@ -140,6 +161,11 @@ def print_stats(stats):
     """
     print "Found %d events" % len(stats)
 
+    get_event_stats(stats)
+    get_tot_stats(stats)
+
+
+def get_event_stats(stats):
     # get event stats
     for event in EVENTS:
         vals = get_vals(stats, event)
@@ -150,11 +176,13 @@ def print_stats(stats):
         print_percent_stat("zeros", event, get_zero_percent(vals))
         print
 
+
+def get_tot_stats(stats):
     print "-" * 60 + "\n"
     print "Printing totals...\n"
     # get tot stats
-    print_tot_stats("freq", sum_freq(stats))
-    print_tot_stats("count", sum_count(stats))
+    print_tot_stats("freq", get_vals(stats, "freq"))
+    print_tot_stats("count", get_vals(stats, "count"))
 
 
 def print_tot_stats(name, stats):
@@ -167,7 +195,6 @@ def print_tot_stats(name, stats):
 
 
 def print_dict_stat(stat, event, ip, stats_dict):
-
     val = stats_dict[event]
     print "%s of %s from %s is %d." % (stat, event, ip, val)
 
@@ -210,6 +237,42 @@ def get_zero_percent(stats):
     return round(num_zeros / float(len(stats)), 2)
 
 
+def sum_count(stats):
+    return sum(agg_type(stats, "count"))
+
+
+def sum_freq(stats):
+    return sum(agg_type(stats, "freq"))
+
+
+def agg_type(stats, keyword):
+    return [stats[e] for e in EVENTS if keyword in e]
+
+
+def get_vals(stats, keyword):
+    return map(lambda kv: kv[1][keyword], stats.iteritems())
+
+
+def get_ssid_stats(stats, days):
+    ip_ssid_map = load_ip_ssid_map()
+    freq_ips = get_sorted_stats(stats, ip_ssid_map, "freq")
+    count_ips = get_sorted_stats(stats, ip_ssid_map, "count")
+    print "Top %d ssids" % LIMIT
+
+    print_ssid_stats(freq_ips, "freq")
+    print_ssid_stats(count_ips, "count")
+
+
+def get_sorted_stats(stats,ip_ssid_map,  keyword, limit=LIMIT):
+    stats = sorted(stats.iteritems(), key=lambda kv: kv[1][keyword], reverse=True)
+    return map(lambda el: (ip_ssid_map[el[0]], el[1][keyword]), stats)[:limit]
+
+
+def print_ssid_stats(ssid_stats, keyword):
+    for ssid, val in ssid_stats:
+        print "ssid: %s, event_%s: %d" % (ssid, keyword, val)
+
+
 def plot_stats(title, stats, days):
     bins = len(stats) / 100
     plot_count(title, stats, bins, days)
@@ -218,7 +281,8 @@ def plot_stats(title, stats, days):
 
 def plot_count(title, stats, bins, days):
     plt.figure()
-    plt.hist(sum_count(stats), bins=bins,
+
+    plt.hist(get_vals(stats, "count"), bins=bins,
              histtype='stepfilled',
              color='r', label="count")
     configure_plot(title, "count", days)
@@ -226,7 +290,7 @@ def plot_count(title, stats, bins, days):
 
 def plot_freq(title, stats, bins, days):
     plt.figure()
-    plt.hist(sum_freq(stats), bins=bins,
+    plt.hist(get_vals(stats, "freq"), bins=bins,
              histtype='stepfilled',
              color='b', label="freq")
     configure_plot(title, "freq", days)
@@ -239,25 +303,6 @@ def configure_plot(title, kind, days):
     plt.legend()
     plt.draw()
 
-
-def sum_count(stats):
-    return sum_stats(get_to_zip(stats, "count"))
-
-
-def sum_freq(stats):
-    return sum_stats(get_to_zip(stats, "freq"))
-
-
-def get_to_zip(stats, keyword):
-    return [get_vals(stats, e) for e in EVENTS if keyword in e]
-
-
-def sum_stats(to_zip, ):
-    return map(sum, zip(*to_zip))
-
-
-def get_vals(stats, event):
-    return map(lambda kv: kv[1][event], stats.iteritems())
 
 if __name__ == "__main__":
 
