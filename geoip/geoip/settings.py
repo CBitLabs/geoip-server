@@ -22,7 +22,7 @@ LOCAL = os.environ.get("LOCAL")
 DEBUG = False
 
 try:
-    execfile(SITE_ROOT + '/config.py')
+    execfile(SITE_ROOT + '../config.py')
 except IOError as e:
     print "Unable to open configuration file!", e
 
