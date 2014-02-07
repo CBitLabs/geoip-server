@@ -20,15 +20,11 @@ class GeoIP(models.Model):
     remote_addr = models.GenericIPAddressField()
 
     datasrc = models.CharField(max_length=80, default="")
-    created_at = models.DateTimeField(default=datetime.datetime.utcnow())
+    created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
     def as_dict(self):
         return {field.name: getattr(self, field.name)
                 for field in self._meta.fields}
-
-    @staticmethod
-    def get_valid_keys():
-        return as_dict.keys()
 
     def as_clean_dict(self):
         as_dict = self.as_dict()

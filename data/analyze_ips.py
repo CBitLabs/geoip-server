@@ -12,7 +12,6 @@ import os
 import csv
 
 AUTH = {
-
     "dbname": "postgres",
     "user": "jblum",
     "password": os.environ.get("POSTGRES")
@@ -255,7 +254,7 @@ def get_ssid_stats(stats, days):
     ip_ssid_map = load_ip_ssid_map()
     freq_ips = get_sorted_stats(stats, ip_ssid_map, "freq")
     count_ips = get_sorted_stats(stats, ip_ssid_map, "count")
-    
+
     print "Top %d ssids" % LIMIT
     print_ssid_stats(freq_ips, "freq")
     print_ssid_stats(count_ips, "count")
