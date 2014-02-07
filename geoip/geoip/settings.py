@@ -24,6 +24,7 @@ DEBUG = False
 try:
     execfile(SITE_ROOT + '/../config.py')
 except IOError as e:
+    execfile(SITE_ROOT + '/config.py')
     print "Unable to open configuration file!", e
 
 if LOCAL:  # export LOCAL=1
