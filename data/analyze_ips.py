@@ -40,22 +40,28 @@ QUERY = """SELECT COALESCE(SUM(spam_count), 0),
 IN_FILE = "ip_list.csv"
 
 
-def main(days, useSubnet):
+def main(days, use_subnet, compute_all):
 
-    print "\nLoading ips..."
-    ips = load_ips()
+    if compute_all:
+        days = [50, 100]
+    else:
+        days = [days]
 
-    print "\nBuilding stats..."
-    ip_stats, subnet_stats = get_stats(ips, days, useSubnet)
+    for day in days:
+        print "\nLoading ips..."
+        ips = load_ips()
 
-    print "\nPrinting IP stats..."
-    print_stats(ip_stats)
+        print "\nBuilding stats..."
+        ip_stats, subnet_stats = get_stats(ips, day, use_subnet)
 
-    if useSubnet:
-        print "=" * 60
+        print "\nPrinting IP stats..."
+        print_stats(ip_stats)
 
-        print "\nPrinting subnet stats..."
-        print_stats(subnet_stats)
+        if use_subnet:
+            print "=" * 60
+
+            print "\nPrinting subnet stats..."
+            print_stats(subnet_stats)
 
     plt.show()
 
@@ -66,7 +72,7 @@ def load_ips(in_file=IN_FILE):
         return [row[0] for row in reader]
 
 
-def get_stats(ips, days, useSubnet):
+def get_stats(ips, days, use_subnet):
     """walk through list of ip addresses and gather sum across events"""
     cur = get_cursor()
     ip_stats = {}
@@ -74,17 +80,17 @@ def get_stats(ips, days, useSubnet):
     for i, ip in enumerate(ips):
         ip_stats[ip] = sum_query(cur, ip, "=", days)
 
-        if useSubnet:
+        if use_subnet:
             subnet = get_subnet(ip)
             subnet_stats[subnet] = sum_query(cur, subnet, "<<", days)
 
         if not i % 100:
             print "Queried %d rows." % i
 
-    plot_stats("IP stats", ip_stats)
+    plot_stats("IP stats", ip_stats, days)
 
-    if useSubnet:
-        plot_stats("subnet stats", subnet_stats)
+    if use_subnet:
+        plot_stats("subnet stats", subnet_stats, days)
 
     return ip_stats, subnet_stats
 
@@ -203,18 +209,30 @@ def get_zero_percent(stats):
     return round(num_zeros / float(len(stats)), 2)
 
 
-def plot_stats(title, stats):
-    plt.figure()
+def plot_stats(title, stats, days):
     bins = len(stats) / 100
+    plot_count(title, stats, bins, days)
+    plot_freq(title, stats, bins, days)
+
+
+def plot_count(title, stats, bins, days):
+    plt.figure()
     plt.hist(sum_count(stats), bins=bins,
              histtype='stepfilled',
              color='r', label="count")
+    configure_plot(title, "count", days)
 
+
+def plot_freq(title, stats, bins, days):
+    plt.figure()
     plt.hist(sum_freq(stats), bins=bins,
              histtype='stepfilled',
              color='b', label="freq")
+    configure_plot(title, "freq", days)
 
-    plt.title(title)
+
+def configure_plot(title, kind, days):
+    plt.title("%s %s for %d days" % (title, kind, days))
     plt.xlabel("Value")
     plt.ylabel("Frequency")
     plt.legend()
@@ -222,11 +240,11 @@ def plot_stats(title, stats):
 
 
 def sum_count(stats):
-    return sum_stats(get_to_zip(stats, "freq"))
+    return sum_stats(get_to_zip(stats, "count"))
 
 
 def sum_freq(stats):
-    return sum_stats(get_to_zip(stats, "count"))
+    return sum_stats(get_to_zip(stats, "freq"))
 
 
 def get_to_zip(stats, keyword):
@@ -246,8 +264,12 @@ if __name__ == "__main__":
     parser.add_option("-d", "--days", default=50, dest="days",
                       help="Number of days, either 50 or 100. Default 50.")
     parser.add_option("-s", "--subnet",
-                      action="store_false", dest="useSubnet", default=True,
+                      action="store_false", dest="use_subnet", default=True,
                       help="compute subnet stats")
 
+    parser.add_option("-a", "--all",
+                      action="store_true", dest="compute_all", default=False,
+                      help="use 50 and 100 day data")
+
     (options, args) = parser.parse_args()
-    main(options.days, options.useSubnet)
+    main(options.days, options.use_subnet, options.compute_all)

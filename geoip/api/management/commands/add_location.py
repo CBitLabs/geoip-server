@@ -2,6 +2,7 @@ from django.core.management.base import NoArgsCommand
 
 from api.models import GeoIP
 from api.util import _reverse_geo
+from api.constants import NO_LOC
 
 
 class Command(NoArgsCommand):
@@ -14,7 +15,7 @@ class Command(NoArgsCommand):
 
         for index, obj in enumerate(objs):
 
-            if obj.lat != 0 and obj.lng != 0:
+            if obj.lat != 0 and obj.lng != 0 and obj.loc == NO_LOC:
                 obj.loc = _reverse_geo(obj.lat, obj.lng)
                 obj.save()
 
