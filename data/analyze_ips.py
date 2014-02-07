@@ -27,8 +27,6 @@ EVENTS = [
     "unexp_freq",
 ]
 
-COLORS = ['b', 'g', 'r', 'c', 'm', 'y']
-
 SUM_QUERY = """SELECT COALESCE(SUM(spam_count), 0),
                 COALESCE(SUM(spam_freq), 0), 
                 COALESCE(SUM(bot_count), 0), 
@@ -168,7 +166,6 @@ def print_stats(stats):
 
 
 def get_event_stats(stats):
-    # get event stats
     for event in EVENTS:
         vals = get_vals(stats, event)
         print_dict_stat("max", event, *get_max(stats, event))
@@ -182,7 +179,6 @@ def get_event_stats(stats):
 def get_tot_stats(stats):
     print "-" * 60 + "\n"
     print "Printing totals...\n"
-    # get tot stats
     print_tot_stats("freq", get_vals(stats, "freq"))
     print_tot_stats("count", get_vals(stats, "count"))
 
@@ -259,15 +255,15 @@ def get_ssid_stats(stats, days):
     ip_ssid_map = load_ip_ssid_map()
     freq_ips = get_sorted_stats(stats, ip_ssid_map, "freq")
     count_ips = get_sorted_stats(stats, ip_ssid_map, "count")
+    
     print "Top %d ssids" % LIMIT
-
     print_ssid_stats(freq_ips, "freq")
     print_ssid_stats(count_ips, "count")
 
 
 def get_sorted_stats(stats, ip_ssid_map, keyword, limit=LIMIT):
-    stats = sorted(
-        stats.iteritems(), key=lambda kv: kv[1][keyword], reverse=True)
+    stats = sorted(stats.iteritems(),
+                   key=lambda kv: kv[1][keyword], reverse=True)
     return map(lambda el: (ip_ssid_map[el[0]], el[0], el[1][keyword]), stats)[:limit]
 
 

@@ -15,8 +15,10 @@ def extract_ips(in_file=IN_FILE, out_file=OUT_FILE):
             try:
                 ip = line[1]
                 ssid = _get_ssid(line[2])
-                row = "%s,%s" % (ip, ssid)
-                ips.add(row)
+                resolver = _get_resolver(line[2])
+                if resolver != "d":
+                    row = "%s,%s" % (ip, ssid)
+                    ips.add(row)
             except IndexError:
                 pass
         ips = filter(lambda ip: len(ip) > 1, ips)
@@ -25,6 +27,10 @@ def extract_ips(in_file=IN_FILE, out_file=OUT_FILE):
 
 def _get_ssid(dns_query):
     return dns_query.split(".")[5]
+
+
+def _get_resolver(dns_query):
+    return dns_query.split(".")[0]
 
 if __name__ == "__main__":
     extract_ips()
