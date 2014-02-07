@@ -151,6 +151,7 @@ def print_stats(stats):
         print
 
     print "-" * 60 + "\n"
+    print "Printing totals...\n"
     # get tot stats
     print_tot_stats("freq", sum_freq(stats))
     print_tot_stats("count", sum_count(stats))
