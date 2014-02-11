@@ -4,7 +4,7 @@ from adaptor.model import CsvDbModel
 import datetime
 
 
-class EntityValue(models.Model):
+class IpEvents(models.Model):
 
     """
         Model to hold data pulled from EntityValues table
@@ -13,7 +13,7 @@ class EntityValue(models.Model):
     """
 
     date = models.IntegerField()
-    address = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField()
     spam_count = models.IntegerField()
     spam_freq = models.IntegerField()
     bot_count = models.IntegerField()
@@ -37,17 +37,7 @@ class EntityValue(models.Model):
 
     def __unicode__(self):
         return "Ip: %s, total count: %d, total freq: %d" % (
-            self.address, self.total_count, self.total_freq)
-
-
-class EntityValueCSV(CsvDbModel):
-
-    """
-        used to extract data from csv
-    """
-    class Meta:
-        dbModel = EntityValue
-        delimiter = ","
+            self.ip, self.total_count(), self.total_freq())
 
 
 class Rating(models.Model):

@@ -1,12 +1,7 @@
-CREATE TABLE ip_events_100 (
-    date int,
-    address inet,
-    spam_count int,
-    spam_freq int,
-    bot_count int,
-    bot_freq int,
-    unexp_count int,
-    unexp_freq int);
+CREATE TABLE ratings_ipevents_tmp LIKE ratings_ipevents;
+\copy ratings_ipevents_tmp FROM '/Users/jblum/work/ip-stats.csv' DELIMITER ',' CSV;
+CREATE INDEX addr_idx ON ratings_ipevents_tmp (address);
+RENAME TABLE ratings_ipevents TO old_ratings_ipevents, 
+            ratings_ipevents_tmp TO ratings_ipevents;
 
-\copy ip_events_100 from '/Users/jblum/work/ip-stats-16000-16099.csv' DELIMITER ',' CSV;
-CREATE INDEX addr_100_idx on ip_events_100 (address);
+DROP TABLE old_ratings_ipevents;

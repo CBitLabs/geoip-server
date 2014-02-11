@@ -8,11 +8,11 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'EntityValue'
-        db.create_table(u'ratings_entityvalue', (
+        # Adding model 'IpEvents'
+        db.create_table(u'ratings_ipevents', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('date', self.gf('django.db.models.fields.IntegerField')()),
-            ('address', self.gf('django.db.models.fields.GenericIPAddressField')(max_length=39)),
+            ('ip', self.gf('django.db.models.fields.GenericIPAddressField')(max_length=39)),
             ('spam_count', self.gf('django.db.models.fields.IntegerField')()),
             ('spam_freq', self.gf('django.db.models.fields.IntegerField')()),
             ('bot_count', self.gf('django.db.models.fields.IntegerField')()),
@@ -20,7 +20,7 @@ class Migration(SchemaMigration):
             ('unexp_count', self.gf('django.db.models.fields.IntegerField')()),
             ('unexp_freq', self.gf('django.db.models.fields.IntegerField')()),
         ))
-        db.send_create_signal(u'ratings', ['EntityValue'])
+        db.send_create_signal(u'ratings', ['IpEvents'])
 
         # Adding model 'Rating'
         db.create_table(u'ratings_rating', (
@@ -33,21 +33,21 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting model 'EntityValue'
-        db.delete_table(u'ratings_entityvalue')
+        # Deleting model 'IpEvents'
+        db.delete_table(u'ratings_ipevents')
 
         # Deleting model 'Rating'
         db.delete_table(u'ratings_rating')
 
 
     models = {
-        u'ratings.entityvalue': {
-            'Meta': {'object_name': 'EntityValue'},
-            'address': ('django.db.models.fields.GenericIPAddressField', [], {'max_length': '39'}),
+        u'ratings.ipevents': {
+            'Meta': {'object_name': 'IpEvents'},
             'bot_count': ('django.db.models.fields.IntegerField', [], {}),
             'bot_freq': ('django.db.models.fields.IntegerField', [], {}),
             'date': ('django.db.models.fields.IntegerField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'ip': ('django.db.models.fields.GenericIPAddressField', [], {'max_length': '39'}),
             'spam_count': ('django.db.models.fields.IntegerField', [], {}),
             'spam_freq': ('django.db.models.fields.IntegerField', [], {}),
             'unexp_count': ('django.db.models.fields.IntegerField', [], {}),
