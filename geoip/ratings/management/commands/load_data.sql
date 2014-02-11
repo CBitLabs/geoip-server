@@ -1,5 +1,5 @@
 CREATE TABLE ratings_ipevents_tmp (LIKE ratings_ipevents);
-\copy ratings_ipevents_tmp FROM 'ip-stats.csv' DELIMITER ',' CSV HEADER;
+\copy ratings_ipevents_tmp FROM '/tmp/ip-stats.csv' DELIMITER ',' CSV HEADER;
 
 BEGIN;
 DROP INDEX IF EXISTS addr_idx;

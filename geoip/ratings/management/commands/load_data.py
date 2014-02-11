@@ -1,13 +1,14 @@
 from django.core.management.base import NoArgsCommand
 
 import csv
-import shlex
 import subprocess
 import os
 
-IN_FILE = "ip-stats-dl.csv"
-OUT_FILE = "ip-stats.csv"
-SCRIPT = "./load_data.sh"
+
+IN_FILE = "/tmp/ip-stats-dl.csv"
+OUT_FILE = "/tmp/ip-stats.csv"
+PATH = os.path.dirname(os.path.realpath(__file__))
+SCRIPT = "%s/load_data.sh" % PATH
 
 
 class Command(NoArgsCommand):
@@ -15,18 +16,19 @@ class Command(NoArgsCommand):
     args = "filepath to data"
 
     def handle(self, **options):
-        self.stdout.write('Beginning update...\n')
+        self.log('Beginning update...\n')
 
         self.add_id_col()
         self.load_data()
         self.cleanup()
 
-        self.stdout.write('Update complete')
+        self.log('Update complete')
 
     def add_id_col(self):
         """
             insert an id column to the downloaded csv for postgres ingestion
         """
+        self.log("Adding index column...")
         with open(IN_FILE) as f_in, open(OUT_FILE, 'w') as f_out:
             reader = csv.reader(f_in)
             writer = csv.writer(f_out)
@@ -37,13 +39,17 @@ class Command(NoArgsCommand):
                 writer.writerow(new_row)
 
                 if index > 0 and not index % 100:
-                    self.stdout.write("Added %d entries" % index)
+                    self.log("Wrote %d entries" % index)
 
     def load_data(self):
-        cmd = "psql geoip < load_data.sql"
-        subprocess.check_output(shlex.split(cmd),
+        self.log("Loading data...")
+        subprocess.check_output([SCRIPT],
                                 stderr=subprocess.STDOUT)
 
     def cleanup(self):
+        self.log("Cleaning up...")
         os.remove(IN_FILE)
         os.remove(OUT_FILE)
+
+    def log(self, msg):
+        self.stdout.write(msg)
