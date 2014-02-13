@@ -54,3 +54,20 @@ class RatingTest(TestCase):
                              ip=IP, remote_addr=IP)
         retrieved = get_ips_by_ssid(SSID, LAT, LNG)
         self.assertEqual([IP], retrieved)
+
+    def test_filter_by_dist(self):
+        """
+            test the filter on radius
+        """
+        # lat/lng outside of radius
+        far_lat = LAT + 0.1
+        far_lng = LNG + 0.1
+
+        GeoIP.objects.create(ssid=SSID, lat=LAT, lng=LNG,
+                             ip=IP, remote_addr=IP)
+
+        GeoIP.objects.create(ssid=SSID, lat=far_lat, lng=far_lng,
+                             ip=IP, remote_addr=IP)
+
+        retrieved = get_ips_by_ssid(SSID, LAT, LNG)
+        self.assertEqual([IP], retrieved)

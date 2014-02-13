@@ -2,7 +2,7 @@
     Generate and retrieve ratings for networks
 """
 
-from ratings.util import get_epoch_days, calc_dist
+from ratings.util import get_epoch_days, calc_dist, get_network_score
 from ratings.models import Rating, IpEvents
 from api.models import GeoIP
 
@@ -44,7 +44,7 @@ def create_rating(bssid, ssid, lat, lng):
     ssid_ips = get_ips_by_ssid(ssid, lat, lng)
     ips = set(bssid_ips).union(set(ssid_ips))
     events = IpEvents.objects.filter(ips__in=ips)
-    score = calculate_score(events)
+    score = get_network_score(events)
     rating = Rating.objects.create(raw_score=score, bssid=bssid)
     return rating
 
@@ -70,7 +70,3 @@ def filter_by_loc(lat, lng, objs):
         if calc_dist(lat, lng, o.lat, o.lng) < RADIUS:
             filtered_objs.append(o)
     return filtered_objs
-
-
-def calculate_score(events):
-    return sum(map(lambda o: o.total_count() + o.total_freq(), events))
