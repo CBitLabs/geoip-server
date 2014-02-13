@@ -2,26 +2,28 @@ from django.test import TestCase
 
 from ratings.models import IpEvents, Rating
 from ratings.query_manager import rating_manager, get_ips_by_bssid, get_ips_by_ssid
+from ratings.util import get_network_score
 
 from api.models import GeoIP
 
 from common.constants import IP, BSSID, SSID, LAT, LNG
 
+IpEventData = {
+    'date': 16000,
+    'ip': IP,
+    'spam_count': 1,
+    'spam_freq': 1,
+    'bot_count': 1,
+    'bot_freq': 1,
+    'unexp_count': 1,
+    'unexp_freq': 1,
+}
+
 
 class EntityValueTestCase(TestCase):
 
     def setUp(self):
-        data = {
-            'date': 16000,
-            'ip': IP,
-            'spam_count': 1,
-            'spam_freq': 1,
-            'bot_count': 1,
-            'bot_freq': 1,
-            'unexp_count': 1,
-            'unexp_freq': 1,
-        }
-        IpEvents.objects.create(**data)
+        IpEvents.objects.create(**IpEventData)
 
     def test_total_freq(self):
         ev = IpEvents.objects.get(date=16000, ip=IP)
@@ -34,10 +36,29 @@ class EntityValueTestCase(TestCase):
 
 class RatingTest(TestCase):
 
-    def test_basic_rating_manager(self):
+    def test_rating_manager_cache(self):
         created = Rating.objects.create(raw_score=55, bssid=BSSID)
-        retrieved = rating_manager(BSSID)
+        retrieved = rating_manager(IP, BSSID)
         self.assertEqual(created, retrieved)
+        self.assertEqual(len(Rating.objects.all()), 1)
+
+    def test_rating_manager_create(self):
+        rating_manager(IP, BSSID)
+        self.assertEqual(len(Rating.objects.all()), 1)
+
+    def test_rating_manager_by_ip(self):
+        GeoIP.objects.create(bssid=BSSID, ip=IP)
+        event = IpEvents.objects.create(**IpEventData)
+        created = Rating.objects(raw_score=get_network_score([event]),
+                                 bssid=BSSID)
+        retrieved = rating_manager(IP)
+        self.assertEqual(created, retrieved)
+
+    def test_get_network_score(self):
+        event = IpEvents.objects.create(**IpEventData)
+        score = get_network_score([event])
+        rating = rating_manager(IP, BSSID)
+        self.assertEqual(rating.raw_score, score)
 
     def test_get_ips_by_bssid(self):
         GeoIP.objects.create(bssid=BSSID, lat=0, lng=0,

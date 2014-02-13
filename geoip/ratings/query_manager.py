@@ -11,18 +11,28 @@ from annoying.functions import get_object_or_None
 RADIUS = 100  # meters
 
 
-def rating_manager(bssid, ssid=None, lat=None, lng=None):
+def rating_manager(ip, bssid=None, ssid=None, lat=None, lng=None):
     """
         bssid: used for primary grouping of IPS to rating
         ssid: used in conjunction w/lat, lng to cluster on 
         larger networks.
         Returns the rating for the current day w/ the given parameters
     """
+    if bssid is None:
+        bssid = bssid_from_ip(ip)  # try to match by ip
+
+    if bssid is None:
+        return None
+
     rating = get_from_cache(bssid)
-    if rating:
+    if rating is not None:
         return rating
 
     return create_rating(bssid, ssid, lat, lng)
+
+
+def bssid_from_ip(ip):
+    return GeoIP.objects.filter(ip=ip).first()
 
 
 def get_from_cache(bssid):
@@ -42,8 +52,9 @@ def create_rating(bssid, ssid, lat, lng):
     """
     bssid_ips = get_ips_by_bssid(bssid)
     ssid_ips = get_ips_by_ssid(ssid, lat, lng)
+
     ips = set(bssid_ips).union(set(ssid_ips))
-    events = IpEvents.objects.filter(ips__in=ips)
+    events = IpEvents.objects.filter(ip__in=ips)
     score = get_network_score(events)
     rating = Rating.objects.create(raw_score=score, bssid=bssid)
     return rating
@@ -55,6 +66,9 @@ def get_ips_by_bssid(bssid):
 
 
 def get_ips_by_ssid(ssid, lat, lng):
+    if not all([ssid, lat, lng]):
+        return []
+
     objs = GeoIP.objects.filter(ssid__icontains=ssid)
     objs = filter_by_loc(lat, lng, objs)
     return _extract_ips(objs)

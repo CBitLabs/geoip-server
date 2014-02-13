@@ -1,6 +1,7 @@
 from django.db import models
 
 from api.constants import NO_LOC
+from ratings.models import Rating
 
 import datetime
 import humanize
@@ -22,6 +23,8 @@ class GeoIP(models.Model):
     datasrc = models.CharField(max_length=80, default="")
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
+    # rating = models.ForeignKey(Rating, null=True)
+
     def as_dict(self):
         return {field.name: getattr(self, field.name)
                 for field in self._meta.fields}
@@ -34,6 +37,7 @@ class GeoIP(models.Model):
              humanize.naturaltime(geoip['created_at'].replace(tzinfo=None))),
             ('created_at', lambda geoip:
              str(geoip['created_at'])),
+            ('rating', lambda geoip: geoip['rating'].as_clean_dict())
         ]
 
         import util

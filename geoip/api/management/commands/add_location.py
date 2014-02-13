@@ -19,5 +19,5 @@ class Command(NoArgsCommand):
                 obj.loc = _reverse_geo(obj.lat, obj.lng)
                 obj.save()
 
-            if not index % 100:
+            if index > 0 and not index % 100:
                 self.stdout.write("Updated %d entries" % index)

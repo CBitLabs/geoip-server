@@ -1,6 +1,9 @@
 from pygeocoder import Geocoder, GeocoderError
 
+from ratings.query_manager import rating_manager
+
 import api.models as models
+
 
 import constants
 import re
@@ -86,6 +89,11 @@ def process_res(request, res, src, remote_addr=None):
     if remote_addr is None:
         remote_addr = get_client_ip(request)
     res["remote_addr"] = remote_addr
+
+    rating = rating_manager(remote_addr, res['bssid'],
+                            res['ssid'], res['lat'], res['lng'])
+
+    res['rating'] = rating
 
     success = is_valid(res)
 

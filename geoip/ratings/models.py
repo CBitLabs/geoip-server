@@ -52,5 +52,11 @@ class Rating(models.Model):
 
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
+    def as_clean_dict(self):
+        return {
+            'raw_score': self.raw_score,
+            'bssid': self.bssid,
+        }
+
     def __unicode__(self):
         return "score: %d, bssid: %s" % (self.raw_score, self.bssid)
