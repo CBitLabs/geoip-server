@@ -73,6 +73,7 @@ INSTALLED_APPS = (
     # third party
     'gunicorn',
     'south',
+    'kronos',
 
     # geoip
     'api',
