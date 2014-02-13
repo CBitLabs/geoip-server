@@ -6,25 +6,9 @@ from api.query_manager import history_manager
 import api.constants as constants
 
 from common.constants import IP, UUID, SSID
-from common.util import get_test_geoip_obj
+from common.util import get_test_geoip_dict, assert_res_code, as_json
 
 import random
-import json
-
-
-def assert_res_code(func, code=200):
-    def wrapped(self, *args, **kwargs):
-        res = func(self, *args, **kwargs)
-        self.assertEqual(res.status_code, code)
-        return res
-    return wrapped
-
-
-def as_json(func):
-    def wrapped(self, *args, **kwargs):
-        res = func(self, *args, **kwargs)
-        return json.loads(res.content)
-    return wrapped
 
 
 def assert_loc(func):
@@ -40,7 +24,7 @@ class ApiTest(TestCase):
         self.client = Client()
 
     def gen_valid_report(self):
-        obj = get_test_geoip_obj()
+        obj = get_test_geoip_dict()
         del obj['remote_addr']  # added by request
         return obj
 
@@ -171,9 +155,9 @@ class ApiTest(TestCase):
 class HistoryQueryManagerTest(TestCase):
 
     def setUp(self):
-        self.type1 = get_test_geoip_obj(ssid=SSID + "1")
-        self.type2 = get_test_geoip_obj(ssid=SSID + "2")
-        self.type3 = get_test_geoip_obj(ssid=SSID + "3")
+        self.type1 = get_test_geoip_dict(ssid=SSID + "1")
+        self.type2 = get_test_geoip_dict(ssid=SSID + "2")
+        self.type3 = get_test_geoip_dict(ssid=SSID + "3")
         self.factory = RequestFactory()
 
     def create_duplicated_objs(self):

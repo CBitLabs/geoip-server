@@ -5,7 +5,7 @@ from ratings.util import get_epoch_days
 import datetime
 
 
-class IpEvents(models.Model):
+class IpEvent(models.Model):
 
     """
         Model to hold data pulled from EntityValues table

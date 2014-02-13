@@ -1,6 +1,9 @@
 from pygeocoder import Geocoder, GeocoderError
 
 from ratings.query_manager import rating_manager
+from ratings.util import get_clean_rating_dict
+
+from common.util import get_client_ip
 
 import api.models as models
 
@@ -100,6 +103,8 @@ def process_res(request, res, src, remote_addr=None):
     if success:
         res["loc"] = _reverse_geo(res["lat"], res["lng"])
         res = write_db(res)
+    else:
+        res['rating'] = get_clean_rating_dict(rating)
 
     res["success"] = success
     return res
@@ -123,7 +128,6 @@ def write_db(d):
     d = _validate(d)
     geoip = models.GeoIP(**d)
     geoip.save()
-
     d.update(geoip.as_clean_dict())
     return d
 
@@ -133,12 +137,3 @@ def _validate(res):
     valid_fields = set(
         map(lambda field: field.name, models.GeoIP._meta.fields))
     return {k: v for k, v in res.iteritems() if k in valid_fields}
-
-
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip

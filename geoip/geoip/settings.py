@@ -33,6 +33,7 @@ if LOCAL:  # export LOCAL=1
 
 
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
+SOUTH_TESTS_MIGRATE = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/

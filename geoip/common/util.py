@@ -1,5 +1,8 @@
 from django.http import HttpResponse
 
+from ratings.models import IpEvent
+from api.models import GeoIP
+
 from common.constants import LAT, LNG, SSID, BSSID, UUID, IP
 
 import json
@@ -10,8 +13,40 @@ def json_response(res):
                         content_type="application/json")
 
 
-def get_test_geoip_obj(lat=LAT, lng=LNG, ssid=SSID,
-                       bssid=BSSID, uuid=UUID, ip=IP):
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+def create_test_geoip(lat=LAT, lng=LNG, ssid=SSID,
+                      bssid=BSSID, uuid=UUID, ip=IP):
+    return GeoIP.objects.create(
+        **get_test_geoip_dict(lat, lng,
+                              ssid, bssid,
+                              uuid, ip
+                              )
+    )
+
+
+def create_test_ipevent(date=16000, ip=IP,
+                        spam_count=1, spam_freq=1,
+                        bot_count=1, bot_freq=1,
+                        unexp_count=1, unexp_freq=1):
+    return IpEvent.objects.create(
+        **get_test_ipevent_dict(date, ip,
+                                spam_count, spam_freq,
+                                bot_count, bot_freq,
+                                unexp_count, unexp_freq
+                                )
+    )
+
+
+def get_test_geoip_dict(lat=LAT, lng=LNG, ssid=SSID,
+                        bssid=BSSID, uuid=UUID, ip=IP):
     """
         Used to testing purposes
     """
@@ -24,3 +59,34 @@ def get_test_geoip_obj(lat=LAT, lng=LNG, ssid=SSID,
         "ip": ip,
         "remote_addr": ip
     }
+
+
+def get_test_ipevent_dict(date, ip,
+                          spam_count, spam_freq,
+                          bot_count, bot_freq,
+                          unexp_count, unexp_freq):
+    return {
+        'date': date,
+        'ip': ip,
+        'spam_count': spam_count,
+        'spam_freq': spam_freq,
+        'bot_count': bot_count,
+        'bot_freq': bot_freq,
+        'unexp_count': unexp_count,
+        'unexp_freq': unexp_freq,
+    }
+
+
+def assert_res_code(func, code=200):
+    def wrapped(self, *args, **kwargs):
+        res = func(self, *args, **kwargs)
+        self.assertEqual(res.status_code, code)
+        return res
+    return wrapped
+
+
+def as_json(func):
+    def wrapped(self, *args, **kwargs):
+        res = func(self, *args, **kwargs)
+        return json.loads(res.content)
+    return wrapped

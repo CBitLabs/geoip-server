@@ -9,5 +9,6 @@ urlpatterns = patterns('',
                        url(r'^robots\.txt$', lambda r: HttpResponse(
                            "User-agent: *\nDisallow: /",
                            mimetype="text/plain")),
-                       url(r'', include("api.urls"))
+                       url(r'', include("api.urls")),
+                       url(r'ratings/', include("ratings.urls")),
                        )

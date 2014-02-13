@@ -9,15 +9,15 @@ import os
 IN_FILE = "/tmp/ip-stats-dl.csv"
 OUT_FILE = "/tmp/ip-stats.csv"
 
-SQL = """CREATE TABLE ratings_ipevents_tmp (LIKE ratings_ipevents);
-copy ratings_ipevents_tmp FROM '%(data_file)s' DELIMITER ',' CSV HEADER;
+SQL = """CREATE TABLE ratings_ipevent_tmp (LIKE ratings_ipevent);
+copy ratings_ipevent_tmp FROM '%(data_file)s' DELIMITER ',' CSV HEADER;
 
 BEGIN;
 DROP INDEX IF EXISTS addr_idx;
-CREATE INDEX addr_idx ON ratings_ipevents_tmp (ip);
-ALTER TABLE ratings_ipevents RENAME TO ratings_ipevents_old;
-ALTER TABLE ratings_ipevents_tmp RENAME TO ratings_ipevents;
-DROP TABLE ratings_ipevents_old;
+CREATE INDEX addr_idx ON ratings_ipevent_tmp (ip);
+ALTER TABLE ratings_ipevent RENAME TO ratings_ipevent_old;
+ALTER TABLE ratings_ipevent_tmp RENAME TO ratings_ipevent;
+DROP TABLE ratings_ipevent_old;
 COMMIT;
 """ % {
     'data_file': OUT_FILE,

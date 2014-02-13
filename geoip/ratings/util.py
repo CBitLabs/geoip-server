@@ -26,3 +26,22 @@ def get_network_score(events):
     """
     # TODO
     return sum(map(lambda o: o.total_count() + o.total_freq(), events))
+
+
+def get_res_dict(rating):
+    success = rating is not None
+    data = {}
+
+    if success:
+        data = rating.as_clean_dict()
+
+    return {
+        "success": success,
+        "data": data
+    }
+
+
+def get_clean_rating_dict(rating):
+    if rating is None:
+        return {}
+    return rating.as_clean_dict()

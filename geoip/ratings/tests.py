@@ -1,37 +1,25 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 
-from ratings.models import IpEvents, Rating
+from ratings.models import IpEvent, Rating
 from ratings.query_manager import rating_manager, get_ips_by_bssid, get_ips_by_ssid
-from ratings.util import get_network_score
-
-from api.models import GeoIP
+from ratings.util import get_network_score, get_res_dict
 
 from common.constants import IP, BSSID, SSID, LAT, LNG
-
-IpEventData = {
-    'date': 16000,
-    'ip': IP,
-    'spam_count': 1,
-    'spam_freq': 1,
-    'bot_count': 1,
-    'bot_freq': 1,
-    'unexp_count': 1,
-    'unexp_freq': 1,
-}
+from common.util import create_test_geoip, create_test_ipevent, assert_res_code, as_json
 
 
 class EntityValueTest(TestCase):
 
     def setUp(self):
-        IpEvents.objects.create(**IpEventData)
+        create_test_ipevent()
 
     def test_total_freq(self):
-        ev = IpEvents.objects.get(date=16000, ip=IP)
-        self.assertEqual(ev.total_freq(), 3)
+        event = IpEvent.objects.get(date=16000, ip=IP)
+        self.assertEqual(event.total_freq(), 3)
 
     def test_total_count(self):
-        ev = IpEvents.objects.get(date=16000, ip=IP)
-        self.assertEqual(ev.total_count(), 3)
+        event = IpEvent.objects.get(date=16000, ip=IP)
+        self.assertEqual(event.total_count(), 3)
 
 
 class RatingTest(TestCase):
@@ -47,28 +35,27 @@ class RatingTest(TestCase):
         self.assertEqual(len(Rating.objects.all()), 1)
 
     def test_rating_manager_by_ip(self):
-        GeoIP.objects.create(bssid=BSSID, ip=IP)
-        event = IpEvents.objects.create(**IpEventData)
-        created = Rating.objects(raw_score=get_network_score([event]),
-                                 bssid=BSSID)
+        create_test_geoip()
+        event = create_test_ipevent()
+        created = Rating.objects.create(raw_score=get_network_score([event]),
+                                        bssid=BSSID)
         retrieved = rating_manager(IP)
         self.assertEqual(created, retrieved)
 
     def test_get_network_score(self):
-        event = IpEvents.objects.create(**IpEventData)
+        event = create_test_ipevent()
+        create_test_geoip()
         score = get_network_score([event])
         rating = rating_manager(IP, BSSID)
         self.assertEqual(rating.raw_score, score)
 
     def test_get_ips_by_bssid(self):
-        GeoIP.objects.create(bssid=BSSID, lat=0, lng=0,
-                             ip=IP, remote_addr=IP)
+        create_test_geoip()
         retrieved = get_ips_by_bssid(BSSID)
         self.assertEqual([IP], retrieved)
 
     def test_get_ips_by_ssid(self):
-        GeoIP.objects.create(ssid=SSID, lat=LAT, lng=LNG,
-                             ip=IP, remote_addr=IP)
+        create_test_geoip()
         retrieved = get_ips_by_ssid(SSID, LAT, LNG)
         self.assertEqual([IP], retrieved)
 
@@ -80,11 +67,30 @@ class RatingTest(TestCase):
         far_lat = LAT + 0.1
         far_lng = LNG + 0.1
 
-        GeoIP.objects.create(ssid=SSID, lat=LAT, lng=LNG,
-                             ip=IP, remote_addr=IP)
+        create_test_geoip()
 
-        GeoIP.objects.create(ssid=SSID, lat=far_lat, lng=far_lng,
-                             ip=IP, remote_addr=IP)
+        create_test_geoip(lat=far_lat, lng=far_lng)
 
         retrieved = get_ips_by_ssid(SSID, LAT, LNG)
         self.assertEqual([IP], retrieved)
+
+
+class RatingViewTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        create_test_ipevent()
+        create_test_geoip()
+
+    @as_json
+    @assert_res_code
+    def get_rating(self, data={}):
+        res = self.client.get('/ratings/get_rating', data=data)
+        return res
+
+    def test_get_rating_view(self):
+        res = self.get_rating({'bssid': BSSID})
+        objs = Rating.objects.all()
+        self.assertEqual(len(objs), 1)
+        rating_dict = get_res_dict(objs.first())
+        self.assertEqual(rating_dict, res)

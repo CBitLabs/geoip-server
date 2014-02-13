@@ -1,8 +1,10 @@
 from django.views.decorators.csrf import csrf_exempt
-
-from rating.query_manager import rating_manager
-
 from annoying.decorators import ajax_request
+
+from ratings.query_manager import rating_manager
+from ratings.util import get_res_dict
+
+from common.util import get_client_ip
 
 
 @csrf_exempt
@@ -12,7 +14,7 @@ def get_rating(request):
     ssid = request.GET.get("ssid")
     lat = request.GET.get("lat")
     lng = request.GET.get("lng")
-    ip = request.remote_addr
+    ip = get_client_ip(request)
 
     rating = rating_manager(ip, bssid, ssid, lat, lng)
-    return rating.as_clean_dict()
+    return get_res_dict(rating)

@@ -3,7 +3,7 @@
 """
 
 from ratings.util import get_epoch_days, calc_dist, get_network_score
-from ratings.models import Rating, IpEvents
+from ratings.models import Rating, IpEvent
 from api.models import GeoIP
 
 from annoying.functions import get_object_or_None
@@ -19,10 +19,12 @@ def rating_manager(ip, bssid=None, ssid=None, lat=None, lng=None):
         Returns the rating for the current day w/ the given parameters
     """
     if bssid is None:
-        bssid = bssid_from_ip(ip)  # try to match by ip
+        geoip = bssid_from_ip(ip)  # try to match by ip
 
-    if bssid is None:
-        return None
+        if geoip is None:
+            return None
+        else:
+            bssid = geoip.bssid
 
     rating = get_from_cache(bssid)
     if rating is not None:
@@ -54,7 +56,7 @@ def create_rating(bssid, ssid, lat, lng):
     ssid_ips = get_ips_by_ssid(ssid, lat, lng)
 
     ips = set(bssid_ips).union(set(ssid_ips))
-    events = IpEvents.objects.filter(ip__in=ips)
+    events = IpEvent.objects.filter(ip__in=ips)
     score = get_network_score(events)
     rating = Rating.objects.create(raw_score=score, bssid=bssid)
     return rating
