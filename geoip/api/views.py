@@ -1,6 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
+
 from api.query_manager import history_manager
+from common.util import json_response
 
 from annoying.decorators import ajax_request
 
@@ -8,11 +9,6 @@ import api.constants as constants
 import api.util as util
 
 import json
-
-
-def json_response(res):
-    return HttpResponse(json.dumps(res),
-                        content_type="application/json")
 
 
 @csrf_exempt
