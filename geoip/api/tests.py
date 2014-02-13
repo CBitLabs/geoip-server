@@ -1,11 +1,15 @@
+from django.test.client import RequestFactory
 from django.test import TestCase, Client
+
+from api.models import GeoIP
+from api.query_manager import history_manager
 import api.constants as constants
+
+from common.constants import IP, UUID, SSID
+from common.util import get_test_geoip_obj
 
 import random
 import json
-
-IP = "192.168.1.1"
-UUID = "xrig9u9j6vaq"
 
 
 def assert_res_code(func, code=200):
@@ -33,18 +37,12 @@ def assert_loc(func):
 class ApiTestCase(TestCase):
 
     def setUp(self):
-        # Every test needs a client.
         self.client = Client()
 
     def gen_valid_report(self):
-        return {
-            "lat": "42.3557695",
-            "lng": "-71.0985843",
-            "ssid": "MIT_GUEST",
-            "bssid": "0021d84976ee",
-            "uuid": UUID,
-            "ip": IP,
-        }
+        obj = get_test_geoip_obj()
+        del obj['remote_addr']  # added by request
+        return obj
 
     def gen_invalid_report(self):
         report = self.gen_valid_report()
@@ -168,3 +166,64 @@ class ApiTestCase(TestCase):
         history = self.get_history(UUID)
         self.assertGreaterEqual(history[0]['created_at'],
                                 history[-1]['created_at'])
+
+
+class HistoryQueryManagerTest(TestCase):
+
+    def setUp(self):
+        self.type1 = get_test_geoip_obj(ssid=SSID + "1")
+        self.type2 = get_test_geoip_obj(ssid=SSID + "2")
+        self.type3 = get_test_geoip_obj(ssid=SSID + "3")
+        self.factory = RequestFactory()
+
+    def create_duplicated_objs(self):
+        """
+            create objects ordered to remove dups
+        """
+        self.create_objs(self.type1)
+        self.create_objs(self.type2)
+        self.create_objs(self.type3)
+
+    def create_unordered_objs(self):
+        self.create_objs([self.type1, self.type2, self.type3])
+
+    def create_objs(self, data_arr):
+        if not isinstance(data_arr, list):
+            data_arr = [data_arr]
+        for _ in xrange(constants.PAGE_SIZE):
+            for data in data_arr:
+                GeoIP.objects.create(**data)
+
+    def assert_count(self, objs, size):
+        for obj in objs:
+            self.assertEqual(obj['count'], size)
+
+    def get_history(self, page=0):
+        request = self.factory.get('/history/%s?page=%s' % (UUID, page))
+        return history_manager(request, UUID)
+
+    def test_dup_history_count(self):
+        self.create_duplicated_objs()
+        history = self.get_history(page=0)
+        self.assertEqual(len(history), 1)
+        self.assert_count(history, constants.PAGE_SIZE)
+
+        history = self.get_history(page=1)
+        self.assertEqual(len(history), 1)
+        self.assert_count(history, constants.PAGE_SIZE)
+
+        history = self.get_history(page=2)
+        self.assertEqual(len(history), 1)
+        self.assert_count(history, constants.PAGE_SIZE)
+
+    def test_nodup_history_count(self):
+        self.create_unordered_objs()
+        request = self.factory.get('/history/%s' % UUID)
+        history = history_manager(request, UUID)
+        self.assertEqual(len(history), constants.PAGE_SIZE)
+        self.assert_count(history, 1)
+
+        request = self.factory.get('/history/%s?page=2' % UUID)
+        history = history_manager(request, UUID)
+        self.assertEqual(len(history), constants.PAGE_SIZE)
+        self.assert_count(history, 1)

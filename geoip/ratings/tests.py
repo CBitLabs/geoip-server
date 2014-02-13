@@ -1,15 +1,11 @@
 from django.test import TestCase
 
 from ratings.models import IpEvents, Rating
-from ratings.query_manager import get_rating, get_ips_by_bssid, get_ips_by_ssid
+from ratings.query_manager import rating_manager, get_ips_by_bssid, get_ips_by_ssid
 
 from api.models import GeoIP
 
-BSSID = "testbssid"
-SSID = "testssid"
-LAT = 42.3557695
-LNG = -71.0985843
-IP = '127.0.0.1'
+from common.constants import IP, BSSID, SSID, LAT, LNG
 
 
 class EntityValueTestCase(TestCase):
@@ -28,19 +24,19 @@ class EntityValueTestCase(TestCase):
         IpEvents.objects.create(**data)
 
     def test_total_freq(self):
-        ev = IpEvents.objects.get(date=16000, ip="127.0.0.1")
+        ev = IpEvents.objects.get(date=16000, ip=IP)
         self.assertEqual(ev.total_freq(), 3)
 
     def test_total_count(self):
-        ev = IpEvents.objects.get(date=16000, ip="127.0.0.1")
+        ev = IpEvents.objects.get(date=16000, ip=IP)
         self.assertEqual(ev.total_count(), 3)
 
 
 class RatingTest(TestCase):
 
-    def test_basic_get_rating(self):
+    def test_basic_rating_manager(self):
         created = Rating.objects.create(raw_score=55, bssid=BSSID)
-        retrieved = get_rating(BSSID)
+        retrieved = rating_manager(BSSID)
         self.assertEqual(created, retrieved)
 
     def test_get_ips_by_bssid(self):

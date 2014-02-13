@@ -1,12 +1,12 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-from api.models import GeoIP
+from api.query_manager import history_manager
 
 from annoying.decorators import ajax_request
 
-import constants
+import api.constants as constants
+import api.util as util
 
-import util
 import json
 
 
@@ -31,7 +31,11 @@ def add(request):
     """
 
     data = _get_data(request)
-    res = {key: data.get(key) for key in constants.REQ_KEYS}
+    res = {
+        key: data.get(key)
+        for key in constants.REQ_KEYS
+    }
+
     res = util.process_res(request, res, constants.HTTP)
 
     return res
@@ -64,16 +68,5 @@ def _get_data(request):
 
 
 def history(request, uuid):
-    page, offset = _get_page(request)
-    history = GeoIP.objects.filter(
-        uuid=uuid).order_by('-created_at')[offset:offset + constants.PAGE_SIZE]
-
-    r = map(lambda geoip: geoip.as_clean_dict(), history)
-    return json_response(r)
-
-
-def _get_page(request):
-    page = util.atoi(request.GET.get("page"), 0)
-    page = max(page - 1, 0)
-    offset = page * constants.PAGE_SIZE
-    return page, offset
+    history_json = history_manager(request, uuid)
+    return json_response(history_json)

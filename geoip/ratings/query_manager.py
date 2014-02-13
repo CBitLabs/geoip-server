@@ -11,7 +11,7 @@ from annoying.functions import get_object_or_None
 RADIUS = 100  # meters
 
 
-def get_rating(bssid, ssid=None, lat=None, lng=None):
+def rating_manager(bssid, ssid=None, lat=None, lng=None):
     """
         bssid: used for primary grouping of IPS to rating
         ssid: used in conjunction w/lat, lng to cluster on 
