@@ -1,5 +1,6 @@
 from django.db import models
-from adaptor.model import CsvDbModel
+
+from ratings.util import get_epoch_days
 
 import datetime
 
@@ -12,8 +13,8 @@ class IpEvents(models.Model):
         to build a rating object.
     """
 
-    date = models.IntegerField()
-    ip = models.GenericIPAddressField()
+    date = models.IntegerField(db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
     spam_count = models.IntegerField()
     spam_freq = models.IntegerField()
     bot_count = models.IntegerField()
@@ -45,9 +46,9 @@ class Rating(models.Model):
     """
         TODO: tweak fields
     """
-
+    date = models.IntegerField(default=get_epoch_days, db_index=True)
     raw_score = models.IntegerField()
-    bssid = models.CharField(max_length=80, default="")
+    bssid = models.CharField(max_length=80, default="", db_index=True)
 
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 

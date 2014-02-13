@@ -12,8 +12,8 @@ class GeoIP(models.Model):
     lng = models.FloatField()
     loc = models.CharField(max_length=300, default=NO_LOC)
 
-    bssid = models.CharField(max_length=80, default="")
-    ssid = models.CharField(max_length=80, default="")
+    bssid = models.CharField(max_length=80, default="", db_index=True)
+    ssid = models.CharField(max_length=80, default="", db_index=True)
     uuid = models.CharField(max_length=80, default="")
 
     ip = models.GenericIPAddressField()
