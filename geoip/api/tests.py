@@ -34,7 +34,7 @@ def assert_loc(func):
     return wrapped
 
 
-class ApiTestCase(TestCase):
+class ApiTest(TestCase):
 
     def setUp(self):
         self.client = Client()

@@ -20,7 +20,7 @@ IpEventData = {
 }
 
 
-class EntityValueTestCase(TestCase):
+class EntityValueTest(TestCase):
 
     def setUp(self):
         IpEvents.objects.create(**IpEventData)
