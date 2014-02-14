@@ -1,6 +1,6 @@
 from django.core.management.base import NoArgsCommand
 
-from common.utils import get_conn
+from common.util import get_conn
 
 import csv
 import os
@@ -51,7 +51,7 @@ class Command(NoArgsCommand):
                 new_row.extend(line)
                 writer.writerow(new_row)
 
-                if index > 0 and not index % 100:
+                if index > 0 and not index % 100000:
                     self._log("Wrote %d entries" % index)
 
     def load_data(self):
