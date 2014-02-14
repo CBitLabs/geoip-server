@@ -18,6 +18,7 @@ def deploy_prod():
 def deploy_code():
 
     run("rm -rf %s/*" % env.server_path)
+    local("git checkout master")
     local('zip -r code.zip * -x "*.pyc" "*.git"')
     put("code.zip", "%s/" % env.server_path)
     run("cd %s; unzip -o code.zip" % env.server_path)
