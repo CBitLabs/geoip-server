@@ -2,13 +2,14 @@
     Generate and retrieve ratings for networks
 """
 
-from ratings.util import get_epoch_days, calc_dist, get_network_score
+from ratings.util import get_epoch_days, get_network_score
 from ratings.models import Rating, IpEvent
 from api.models import GeoIP
 
-from annoying.functions import get_object_or_None
+from common.constants import RADIUS
+from common.util import calc_dist
 
-RADIUS = 100  # meters
+from annoying.functions import get_object_or_None
 
 
 def rating_manager(ip, bssid=None, ssid=None, lat=None, lng=None):

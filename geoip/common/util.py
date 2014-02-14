@@ -5,9 +5,21 @@ from api.models import GeoIP
 
 from common.constants import LAT, LNG, SSID, BSSID, UUID, IP
 
+from geopy import distance, Point
 import json
 
 
+def calc_dist(lat1, lng1, lat2, lng2):
+    point1 = Point(_get_point(lat1, lng1))
+    point2 = Point(_get_point(lat2, lng2))
+    return distance.distance(point1, point2).meters
+
+
+def _get_point(lat, lng):
+    return "%s;%s" % (lat, lng)
+
+
+# view methods
 def json_response(res):
     return HttpResponse(json.dumps(res),
                         content_type="application/json")
@@ -20,6 +32,8 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+# testing methods
 
 
 def create_test_geoip(lat=LAT, lng=LNG, ssid=SSID,

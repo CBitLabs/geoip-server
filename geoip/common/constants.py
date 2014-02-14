@@ -4,3 +4,5 @@ BSSID = "testbssid"
 SSID = "testssid"
 LAT = 42.3557695
 LNG = -71.0985843
+
+RADIUS = 100  # meters

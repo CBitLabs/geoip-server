@@ -2,6 +2,9 @@ from api.models import GeoIP
 import api.constants as constants
 import api.util as util
 
+from common.constants import RADIUS
+from common.util import calc_dist
+
 
 def history_manager(request, uuid):
     """
@@ -39,11 +42,11 @@ def collapse_history_dups(geoip_objs):
     res = []
     i = 0
     while i < len(geoip_objs):
-        obj = geoip_objs[i]
-        json = obj.as_clean_dict()
+        obj1 = geoip_objs[i]
+        json = obj1.as_clean_dict()
         count = 0
-        for o in geoip_objs[i:]:
-            if o.ssid != obj.ssid:
+        for obj2 in geoip_objs[i:]:
+            if diff_obj(obj1, obj2):
                 break
 
             count += 1
@@ -53,3 +56,13 @@ def collapse_history_dups(geoip_objs):
         i += count
 
     return res
+
+
+def diff_obj(obj1, obj2):
+    """
+        returns a boolean of if the objects are different
+        if different, should be separate history items
+    """
+    ssid = obj1.ssid != obj2.ssid
+    loc = calc_dist(obj1.lat, obj1.lng, obj2.lat, obj2.lng) > RADIUS
+    return any([ssid, loc])
