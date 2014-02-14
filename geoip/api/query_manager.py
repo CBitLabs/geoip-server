@@ -63,6 +63,19 @@ def diff_obj(obj1, obj2):
         returns a boolean of if the objects are different
         if different, should be separate history items
     """
-    ssid = obj1.ssid != obj2.ssid
-    loc = calc_dist(obj1.lat, obj1.lng, obj2.lat, obj2.lng) > RADIUS
-    return any([ssid, loc])
+    compare_funcs = [_diff_ssid, _diff_loc, _diff_day]
+    comparisons = [f(obj1, obj2) for f in compare_funcs]
+    return any(comparisons)
+
+
+def _diff_ssid(obj1, obj2):
+    return obj1.ssid != obj2.ssid
+
+
+def _diff_loc(obj1, obj2):
+    return calc_dist(obj1.lat, obj1.lng, obj2.lat, obj2.lng) > RADIUS
+
+
+def _diff_day(obj1, obj2):
+    delta = obj1.created_at - obj2.created_at
+    return delta.days > 1
