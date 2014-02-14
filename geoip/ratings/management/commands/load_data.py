@@ -14,7 +14,7 @@ copy ratings_ipevent_tmp FROM '%(data_file)s' DELIMITER ',' CSV HEADER;
 
 BEGIN;
 DROP INDEX IF EXISTS addr_idx;
-CREATE INDEX addr_idx ON ratings_ipevent_tmp (ip);
+CREATE INDEX addr_idx ON ratings_ipevent_tmp (HOST(ip));
 ALTER TABLE ratings_ipevent RENAME TO ratings_ipevent_old;
 ALTER TABLE ratings_ipevent_tmp RENAME TO ratings_ipevent;
 DROP TABLE ratings_ipevent_old;

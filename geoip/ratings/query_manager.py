@@ -12,7 +12,8 @@ from common.util import calc_dist
 from annoying.functions import get_object_or_None
 
 
-def rating_manager(ip, bssid=None, ssid=None, lat=None, lng=None):
+def rating_manager(ip, bssid=None, ssid=None,
+                   lat=None, lng=None, use_cache=True):
     """
         bssid: used for primary grouping of IPS to rating
         ssid: used in conjunction w/lat, lng to cluster on 
@@ -27,9 +28,10 @@ def rating_manager(ip, bssid=None, ssid=None, lat=None, lng=None):
         else:
             bssid = geoip.bssid
 
-    rating = get_from_cache(bssid)
-    if rating is not None:
-        return rating
+    if use_cache:
+        rating = get_from_cache(bssid)
+        if rating is not None:
+            return rating
 
     return create_rating(bssid, ssid, lat, lng)
 

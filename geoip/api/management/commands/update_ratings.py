@@ -22,7 +22,8 @@ class Command(NoArgsCommand):
         for index, geoip in enumerate(objs):
 
             rating = rating_manager(
-                geoip.ip, geoip.bssid, geoip.ssid, geoip.lat, geoip.lng)
+                geoip.ip, bssid=geoip.bssid, ssid=geoip.ssid,
+                lat=geoip.lat, lng=geoip.lng, use_cache=False)
             geoip.rating_id = rating.id
             geoip.save()
 
