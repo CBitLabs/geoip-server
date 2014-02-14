@@ -33,9 +33,8 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+
 # testing methods
-
-
 def create_test_geoip(lat=LAT, lng=LNG, ssid=SSID,
                       bssid=BSSID, uuid=UUID, ip=IP):
     return GeoIP.objects.create(
@@ -91,10 +90,10 @@ def get_test_ipevent_dict(date, ip,
     }
 
 
-def assert_res_code(func, code=200):
+def assert_res_code(func):
     def wrapped(self, *args, **kwargs):
         res = func(self, *args, **kwargs)
-        self.assertEqual(res.status_code, code)
+        self.assertEqual(res.status_code, 200)
         return res
     return wrapped
 
