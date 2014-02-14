@@ -14,13 +14,14 @@ class Migration(SchemaMigration):
             ('lat', self.gf('django.db.models.fields.FloatField')()),
             ('lng', self.gf('django.db.models.fields.FloatField')()),
             ('loc', self.gf('django.db.models.fields.CharField')(default='No location found!', max_length=300)),
-            ('bssid', self.gf('django.db.models.fields.CharField')(default='', max_length=80)),
-            ('ssid', self.gf('django.db.models.fields.CharField')(default='', max_length=80)),
+            ('bssid', self.gf('django.db.models.fields.CharField')(default='', max_length=80, db_index=True)),
+            ('ssid', self.gf('django.db.models.fields.CharField')(default='', max_length=80, db_index=True)),
             ('uuid', self.gf('django.db.models.fields.CharField')(default='', max_length=80)),
             ('ip', self.gf('django.db.models.fields.GenericIPAddressField')(max_length=39)),
             ('remote_addr', self.gf('django.db.models.fields.GenericIPAddressField')(max_length=39)),
             ('datasrc', self.gf('django.db.models.fields.CharField')(default='', max_length=80)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.utcnow)),
+            ('rating', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ratings.Rating'], null=True)),
         ))
         db.send_create_signal(u'api', ['GeoIP'])
 
@@ -33,7 +34,7 @@ class Migration(SchemaMigration):
     models = {
         u'api.geoip': {
             'Meta': {'object_name': 'GeoIP'},
-            'bssid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80'}),
+            'bssid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80', 'db_index': 'True'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.utcnow'}),
             'datasrc': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -41,9 +42,18 @@ class Migration(SchemaMigration):
             'lat': ('django.db.models.fields.FloatField', [], {}),
             'lng': ('django.db.models.fields.FloatField', [], {}),
             'loc': ('django.db.models.fields.CharField', [], {'default': "'No location found!'", 'max_length': '300'}),
+            'rating': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['ratings.Rating']", 'null': 'True'}),
             'remote_addr': ('django.db.models.fields.GenericIPAddressField', [], {'max_length': '39'}),
-            'ssid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80'}),
+            'ssid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80', 'db_index': 'True'}),
             'uuid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80'})
+        },
+        u'ratings.rating': {
+            'Meta': {'object_name': 'Rating'},
+            'bssid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '80', 'db_index': 'True'}),
+            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.utcnow'}),
+            'date': ('django.db.models.fields.IntegerField', [], {'default': '16115', 'db_index': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'raw_score': ('django.db.models.fields.IntegerField', [], {})
         }
     }
 

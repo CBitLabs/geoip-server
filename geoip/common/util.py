@@ -1,4 +1,6 @@
 from django.http import HttpResponse
+from django.conf import settings
+from sqlalchemy import create_engine
 
 from ratings.models import IpEvent
 from api.models import GeoIP
@@ -17,6 +19,14 @@ def calc_dist(lat1, lng1, lat2, lng2):
 
 def _get_point(lat, lng):
     return "%s;%s" % (lat, lng)
+
+#commands
+
+def get_conn():
+    uri = "postgresql://%(USER)s:%(PASSWORD)s@%(HOST)s/%(NAME)s"
+    eng = create_engine(uri % settings.POSTGRES)
+    return eng.connect()
+
 
 
 # view methods

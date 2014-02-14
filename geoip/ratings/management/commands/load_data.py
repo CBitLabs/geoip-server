@@ -1,6 +1,6 @@
 from django.core.management.base import NoArgsCommand
-from django.conf import settings
-from sqlalchemy import create_engine
+
+from common.utils import get_conn
 
 import csv
 import os
@@ -56,13 +56,8 @@ class Command(NoArgsCommand):
 
     def load_data(self):
         self._log("Loading data...")
-        conn = self._get_conn()
+        conn = get_conn()
         conn.execute(SQL)
-
-    def _get_conn(self):
-        uri = "postgresql://%(USER)s:%(PASSWORD)s@%(HOST)s/%(NAME)s"
-        eng = create_engine(uri % settings.POSTGRES)
-        return eng.connect()
 
     def cleanup(self):
         self._log("Cleaning up...")
