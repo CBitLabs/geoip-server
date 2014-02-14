@@ -3,7 +3,7 @@ from fabric.api import *
 
 def setup_prod():
     env.hosts = ['cb101.public.cbitlabs.com']
-    env.server_path = '/home/ubuntu/tmp/'
+    env.server_path = '/home/ubuntu/geoip-server/'
     env.python_path = '/home/ubuntu/.virtualenvs/geoip/bin'
     env.user = 'ubuntu'
     env.graceful = True
