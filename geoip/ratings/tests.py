@@ -1,14 +1,16 @@
 from django.test import TestCase, Client
 
 from ratings.models import IpEvent, Rating
-from ratings.query_manager import rating_manager, get_ips_by_bssid, get_ips_by_ssid
-from ratings.util import get_network_score, get_res_dict
+from ratings.query_manager import rating_manager, \
+    get_ips_by_bssid, get_ips_by_ssid
+from ratings.util import get_network_score, get_res_dict, get_event_counts
 
 from common.constants import IP, BSSID, SSID, LAT, LNG
-from common.util import create_test_geoip, create_test_ipevent, assert_res_code, as_json
+from common.util import create_test_geoip, create_test_ipevent,\
+    assert_res_code, as_json, get_test_event_count
 
 
-class EntityValueTest(TestCase):
+class EntityValueModelTest(TestCase):
 
     def setUp(self):
         create_test_ipevent()
@@ -21,8 +23,13 @@ class EntityValueTest(TestCase):
         event = IpEvent.objects.get(date=16000, ip=IP)
         self.assertEqual(event.total_count(), 3)
 
+    def test_get_event_counts_single(self):
+        event = IpEvent.objects.get(date=16000, ip=IP)
+        expected = get_test_event_count()
+        self.assertEqual(event.get_event_counts(), expected)
 
-class RatingTest(TestCase):
+
+class RatingManagerTest(TestCase):
 
     def test_rating_manager_cache(self):
         created = Rating.objects.create(raw_score=55, bssid=BSSID)
@@ -48,6 +55,16 @@ class RatingTest(TestCase):
         score = get_network_score([event])
         rating = rating_manager(IP, BSSID)
         self.assertEqual(rating.raw_score, score)
+
+    def test_get_event_count(self):
+        event1 = create_test_ipevent()
+        event2 = create_test_ipevent()
+        event_count = get_event_counts([event1, event2])
+        expected = get_test_event_count(spam_count=2, spam_freq=2,
+                                        bot_count=2, bot_freq=2,
+                                        unexp_count=2, unexp_freq=2)
+
+        self.assertEqual(event_count, expected)
 
     def test_get_ips_by_bssid(self):
         create_test_geoip()

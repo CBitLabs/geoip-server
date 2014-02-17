@@ -2,7 +2,7 @@
     Generate and retrieve ratings for networks
 """
 
-from ratings.util import get_epoch_days, get_network_score
+from ratings.util import get_epoch_days, get_network_score, get_event_counts
 from ratings.models import Rating, IpEvent
 from api.models import GeoIP
 
@@ -61,7 +61,8 @@ def create_rating(bssid, ssid, lat, lng):
     ips = set(bssid_ips).union(set(ssid_ips))
     events = IpEvent.objects.filter(ip__in=ips)
     score = get_network_score(events)
-    rating = Rating.objects.create(raw_score=score, bssid=bssid)
+    event_counts = get_event_counts(events)
+    rating = Rating.objects.create(raw_score=score, bssid=bssid, **event_counts)
     return rating
 
 

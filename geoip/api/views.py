@@ -23,6 +23,8 @@ def add(request):
             'bssid' : req,
             'ssid' : req,
             'uuid' : req,
+            'security' : req,
+            'isEnterprise' : req
         }
     """
 

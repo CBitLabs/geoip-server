@@ -1,0 +1,1 @@
+EVENTS = ["spam", "bot", "unexp"]

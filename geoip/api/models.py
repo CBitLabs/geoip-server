@@ -1,6 +1,6 @@
 from django.db import models
 
-from api.constants import NO_LOC
+from api.constants import NO_LOC, NO_SEC
 from ratings.models import Rating
 from ratings.util import get_clean_rating_dict
 
@@ -10,16 +10,19 @@ import humanize
 
 class GeoIP(models.Model):
 
-    lat = models.FloatField()
-    lng = models.FloatField()
+    lat = models.FloatField(default=0.0)
+    lng = models.FloatField(default=0.0)
     loc = models.CharField(max_length=300, default=NO_LOC)
 
     bssid = models.CharField(max_length=80, default="", db_index=True)
     ssid = models.CharField(max_length=80, default="", db_index=True)
     uuid = models.CharField(max_length=80, default="")
 
-    ip = models.GenericIPAddressField()
+    security = models.CharField(max_length=80, default=NO_SEC)
+    isEnterprise = models.BooleanField(default=False)
+
     remote_addr = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField()
 
     datasrc = models.CharField(max_length=80, default="")
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)

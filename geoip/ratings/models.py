@@ -1,6 +1,7 @@
 from django.db import models
 
 from ratings.util import get_epoch_days
+from ratings.constants import EVENTS
 
 import datetime
 
@@ -15,12 +16,12 @@ class IpEvent(models.Model):
 
     date = models.IntegerField(db_index=True)
     ip = models.GenericIPAddressField(db_index=True)
-    spam_count = models.IntegerField()
-    spam_freq = models.IntegerField()
-    bot_count = models.IntegerField()
-    bot_freq = models.IntegerField()
-    unexp_count = models.IntegerField()
-    unexp_freq = models.IntegerField()
+    spam_count = models.IntegerField(default=0)
+    spam_freq = models.IntegerField(default=0)
+    bot_count = models.IntegerField(default=0)
+    bot_freq = models.IntegerField(default=0)
+    unexp_count = models.IntegerField(default=0)
+    unexp_freq = models.IntegerField(default=0)
 
     def total_count(self):
         return sum(self._get_vals("count"))
@@ -28,13 +29,23 @@ class IpEvent(models.Model):
     def total_freq(self):
         return sum(self._get_vals("freq"))
 
-    def _get_vals(self, keyword):
-        return map(lambda name: getattr(self, name), self._get_fields(keyword))
+    def get_event_counts(self):
+        return {k: v for k, v in
+                zip(self._get_fields(EVENTS), self._get_vals(EVENTS))}
 
-    def _get_fields(self, keyword):
-        return [field.name
-                for field in self._meta.fields
-                if keyword in field.name]
+    def _get_vals(self, keywords):
+        return map(lambda name: getattr(self, name), self._get_fields(keywords))
+
+    def _get_fields(self, keywords):
+        if not isinstance(keywords, list):
+            keywords = [keywords]
+        fields = []
+        for field in self._meta.fields:
+            name = field.name
+            for keyword in keywords:
+                if keyword in name:
+                    fields.append(name)
+        return fields
 
     def __unicode__(self):
         return "Ip: %s, total count: %d, total freq: %d" % (
@@ -49,6 +60,13 @@ class Rating(models.Model):
     date = models.IntegerField(default=get_epoch_days, db_index=True)
     raw_score = models.IntegerField()
     bssid = models.CharField(max_length=80, default="", db_index=True)
+
+    spam_count = models.IntegerField(default=0)
+    spam_freq = models.IntegerField(default=0)
+    bot_count = models.IntegerField(default=0)
+    bot_freq = models.IntegerField(default=0)
+    unexp_count = models.IntegerField(default=0)
+    unexp_freq = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 

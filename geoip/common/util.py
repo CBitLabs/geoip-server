@@ -1,9 +1,11 @@
 from django.http import HttpResponse
 from django.conf import settings
 from sqlalchemy import create_engine
+from collections import defaultdict
 
 from ratings.models import IpEvent
 from api.models import GeoIP
+from api.constants import NO_SEC
 
 from common.constants import LAT, LNG, SSID, BSSID, UUID, IP
 
@@ -20,13 +22,20 @@ def calc_dist(lat1, lng1, lat2, lng2):
 def _get_point(lat, lng):
     return "%s;%s" % (lat, lng)
 
-#commands
 
+def dsum(dicts):
+    ret = defaultdict(int)
+    for d in dicts:
+        for k, v in d.items():
+            ret[k] += v
+    return dict(ret)
+
+
+# commands
 def get_conn():
     uri = "postgresql://%(USER)s:%(PASSWORD)s@%(HOST)s/%(NAME)s"
     eng = create_engine(uri % settings.POSTGRES)
     return eng.connect()
-
 
 
 # view methods
@@ -69,7 +78,8 @@ def create_test_ipevent(date=16000, ip=IP,
 
 
 def get_test_geoip_dict(lat=LAT, lng=LNG, ssid=SSID,
-                        bssid=BSSID, uuid=UUID, ip=IP):
+                        bssid=BSSID, uuid=UUID, ip=IP,
+                        security=NO_SEC, isEnterprise=False):
     """
         Used to testing purposes
     """
@@ -80,7 +90,9 @@ def get_test_geoip_dict(lat=LAT, lng=LNG, ssid=SSID,
         "bssid": bssid,
         "uuid": uuid,
         "ip": ip,
-        "remote_addr": ip
+        "remote_addr": ip,
+        "security": security,
+        "isEnterprise": isEnterprise,
     }
 
 
@@ -98,6 +110,19 @@ def get_test_ipevent_dict(date, ip,
         'unexp_count': unexp_count,
         'unexp_freq': unexp_freq,
     }
+
+
+def get_test_event_count(spam_count=1, spam_freq=1,
+                         bot_count=1, bot_freq=1,
+                         unexp_count=1, unexp_freq=1):
+        return {
+            'spam_count': spam_count,
+            'spam_freq': spam_freq,
+            'bot_count': bot_count,
+            'bot_freq': bot_freq,
+            'unexp_count': unexp_count,
+            'unexp_freq': unexp_freq,
+        }
 
 
 def assert_res_code(func):
