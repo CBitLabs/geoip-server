@@ -5,10 +5,9 @@ from ratings.util import get_clean_rating_dict
 
 from common.util import get_client_ip
 
+import api.constants as constants
 import api.models as models
 
-
-import constants
 import re
 
 
@@ -120,7 +119,9 @@ def is_valid(res):
 def _reverse_geo(lat, lng):
     try:
         return Geocoder.reverse_geocode(lat, lng).formatted_address
-    except GeocoderError:
+    except GeocoderError, e:
+        if constants.QUERY_LIMIT in e:
+            return constants.QUERY_LIMIT
         return constants.NO_LOC
 
 

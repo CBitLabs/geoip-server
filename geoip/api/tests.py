@@ -7,8 +7,12 @@ import api.constants as constants
 
 from common.constants import IP, UUID, SSID
 from common.util import get_test_geoip_dict, assert_res_code, as_json
+import common.no_warnings
 
 import random
+import json
+
+SCAN_COUNT = 5
 
 
 def assert_loc(func):
@@ -23,15 +27,21 @@ class ApiTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    def gen_valid_report(self):
+    def gen_valid_wifi_report(self):
         obj = get_test_geoip_dict()
         del obj['remote_addr']  # added by request
         return obj
 
-    def gen_invalid_report(self):
-        report = self.gen_valid_report()
+    def gen_invalid_wifi_report(self):
+        report = self.gen_valid_wifi_report()
         del report[random.choice(report.keys())]
         return report
+
+    def gen_valid_scan_report(self):
+        return [self.gen_valid_wifi_report() for _ in range(SCAN_COUNT)]
+
+    def gen_invalid_scan_report(self):
+        return [self.gen_invalid_wifi_report() for _ in range(SCAN_COUNT)]
 
     def gen_valid_dns_request(self):
         return {
@@ -40,51 +50,69 @@ class ApiTest(TestCase):
         }
 
     def gen_invalid_dns_request(self):
-        data = self.gen_valid_report()
+        data = self.gen_valid_wifi_report()
         data['qname'] = ''
         return data
 
     @as_json
     @assert_res_code
     def get_history(self, uuid):
-        res = self.client.get('/history/%s' % uuid)
-        return res
+        return self.client.get('/history/%s' % uuid)
 
     @as_json
     @assert_res_code
-    def post_add(self, data):
-        res = self.client.post('/add', data=data)
-        return res
+    def post_wifi_report(self, data):
+        return self.client.post('/wifi_report', data=data)
+
+    @as_json
+    @assert_res_code
+    def post_scan_report(self, data):
+        return self.client.post('/scan_report',
+                                content_type="application/json",
+                                data=json.dumps(data))
 
     @as_json
     @assert_res_code
     def post_dnsadd(self, data):
-        res = self.client.post('/dnsadd', data=data)
-        return res
+        return self.client.post('/dnsadd', data=data)
 
     @as_json
     @assert_res_code
-    def get_add(self, data):
-        res = self.client.get('/add', data=data)
-        return res
+    def get_wifi_report(self, data):
+        return self.client.get('/wifi_report', data=data)
+
+    @as_json
+    @assert_res_code
+    def get_scan_report(self, data):
+        return self.client.get('/scan_report',
+                               data=json.dumps(data))
 
     @as_json
     @assert_res_code
     def get_dnsadd(self, data):
-        res = self.client.get('/dnsadd', data=data)
-        return res
+        return self.client.get('/dnsadd', data=data)
 
     def assert_history(self, count, uuid=UUID):
-        self.assertEqual(len(self.get_history(uuid)), count)
+        self.assertEqual(GeoIP.objects.filter(uuid=uuid).count(), count)
 
     @assert_loc
-    def test_post_valid_report(self):
-        res = self.post_add(self.gen_valid_report())
+    def test_post_valid_wifi_report(self):
+        res = self.post_wifi_report(self.gen_valid_wifi_report())
         self.assertTrue(res['success'])
         return res
 
-    def test_post_invalid_report(self):
-        res = self.post_add(self.gen_invalid_report())
+    def test_post_invalid_wifi_report(self):
+        res = self.post_wifi_report(self.gen_invalid_wifi_report())
+        self.assertFalse(res['success'])
+        return res
+
+    def test_post_valid_scan_report(self):
+        res = self.post_scan_report(self.gen_valid_scan_report())
+        self.assertTrue(res['success'])
+        return res
+
+    def test_post_invalid_scan_report(self):
+        res = self.post_scan_report(self.gen_invalid_scan_report())
         self.assertFalse(res['success'])
         return res
 
@@ -100,13 +128,13 @@ class ApiTest(TestCase):
         return res
 
     @assert_loc
-    def test_get_valid_report(self):
-        res = self.get_add(self.gen_valid_report())
+    def test_get_valid_wifi_report(self):
+        res = self.get_wifi_report(self.gen_valid_wifi_report())
         self.assertTrue(res['success'])
         return res
 
-    def test_get_invalid_report(self):
-        res = self.get_add(self.gen_invalid_report())
+    def test_get_invalid_wifi_report(self):
+        res = self.get_wifi_report(self.gen_invalid_wifi_report())
         self.assertFalse(res['success'])
         return res
 
@@ -126,7 +154,7 @@ class ApiTest(TestCase):
         self.assert_history(count)
 
         # add valid report
-        self.post_add(self.gen_valid_report())
+        self.post_wifi_report(self.gen_valid_wifi_report())
         count += 1
         self.assert_history(count)
 
@@ -135,10 +163,14 @@ class ApiTest(TestCase):
         self.assert_history(count)
 
         # don't add invalid
-        self.post_add(self.gen_invalid_report())
+        self.post_wifi_report(self.gen_invalid_wifi_report())
         self.assert_history(count)
 
         self.post_dnsadd(self.gen_invalid_dns_request())
+        self.assert_history(count)
+
+        self.post_scan_report(self.gen_valid_scan_report())
+        count += SCAN_COUNT
         self.assert_history(count)
         return count
 
@@ -146,7 +178,7 @@ class ApiTest(TestCase):
         """
             test correct order by filter for history
         """
-        self.test_history_count()
+        self.test_history_count()  # setup history items
         history = self.get_history(UUID)
         self.assertGreaterEqual(history[0]['created_at'],
                                 history[-1]['created_at'])

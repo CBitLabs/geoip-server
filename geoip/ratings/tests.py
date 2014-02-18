@@ -9,6 +9,8 @@ from common.constants import IP, BSSID, SSID, LAT, LNG
 from common.util import create_test_geoip, create_test_ipevent,\
     assert_res_code, as_json, get_test_event_count
 
+import common.no_warnings
+
 
 class EntityValueModelTest(TestCase):
 
