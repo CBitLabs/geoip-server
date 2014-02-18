@@ -78,7 +78,8 @@ INSTALLED_APPS = (
 
     # geoip
     'api',
-    'ratings'
+    'ratings',
+    'common'
 )
 
 MIDDLEWARE_CLASSES = (
