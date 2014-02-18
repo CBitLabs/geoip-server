@@ -117,12 +117,20 @@ def is_valid(res):
 
 
 def _reverse_geo(lat, lng):
+    if _is_null_loc(lat, lng):
+        loc = constants.NO_LOC
+
     try:
-        return Geocoder.reverse_geocode(lat, lng).formatted_address
+        loc = Geocoder.reverse_geocode(lat, lng).formatted_address
     except GeocoderError, e:
         if constants.QUERY_LIMIT in e:
-            return constants.QUERY_LIMIT
-        return constants.NO_LOC
+            loc = constants.QUERY_LIMIT
+        loc = constants.NO_LOC
+    return loc
+
+
+def _is_null_loc(lat, lng):
+    return lat == 0 or lng == 0
 
 
 def write_db(d):

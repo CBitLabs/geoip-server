@@ -1,10 +1,10 @@
 from django.views.decorators.csrf import csrf_exempt
-
-from api.query_manager import history_manager
-from common.util import json_response
-
 from annoying.decorators import ajax_request
 
+from common.util import json_response
+import common.no_warnings
+
+from api.query_manager import history_manager
 import api.constants as constants
 import api.util as util
 
@@ -61,8 +61,8 @@ def scan_report(request):
         res.append(geoip)
 
     return {
-        'res': res,
         'success': success,
+        'res': res,
     }
 
 
