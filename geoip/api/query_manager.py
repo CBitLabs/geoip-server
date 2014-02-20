@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from api.models import GeoIP
 import api.constants as constants
 import api.util as util
@@ -12,8 +14,8 @@ def history_manager(request, uuid):
         Groups history items to reduce duplicated view clutter on clients
     """
     start, end = get_slice(request)
-    history = GeoIP.objects.filter(
-        uuid=uuid).order_by('-created_at')[start:end]
+    history = GeoIP.objects.filter(~Q(datasrc=constants.SCAN),
+                                   uuid=uuid).order_by('-created_at')[start:end]
     json = collapse_history_dups(history)
     return json
 

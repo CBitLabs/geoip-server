@@ -9,6 +9,7 @@ REQ_KEYS = ['lat', 'lng',
 
 HTTP = "http"
 DNS = "dns"
+SCAN = "scan"
 
 GET = "GET"
 POST = "POST"

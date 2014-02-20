@@ -125,7 +125,8 @@ def _reverse_geo(lat, lng):
     except GeocoderError, e:
         if constants.QUERY_LIMIT in e:
             loc = constants.QUERY_LIMIT
-        loc = constants.NO_LOC
+        else:
+            loc = constants.NO_LOC
     return loc
 
 

@@ -56,7 +56,7 @@ def scan_report(request):
             for key in constants.REQ_KEYS
         }
 
-        geoip = util.process_res(request, geoip, constants.HTTP)
+        geoip = util.process_res(request, geoip, constants.SCAN)
         success = success and geoip['success']
         res.append(geoip)
 
