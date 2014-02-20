@@ -95,7 +95,7 @@ class WifiReportTest(ApiTest):
         self.assertTrue(res['success'])
         return res
 
-    def atest_post_invalid_wifi_report(self):
+    def test_post_invalid_wifi_report(self):
         res = self.post_wifi_report(self.gen_invalid_wifi_report())
         self.assertFalse(res['success'])
         return res
@@ -106,7 +106,7 @@ class WifiReportTest(ApiTest):
         self.assertTrue(res['success'])
         return res
 
-    def atest_get_invalid_wifi_report(self):
+    def test_get_invalid_wifi_report(self):
         res = self.get_wifi_report(self.gen_invalid_wifi_report())
         self.assertFalse(res['success'])
         return res
