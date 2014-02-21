@@ -66,8 +66,10 @@ class Rating(RatingBase):
         TODO: tweak fields
     """
     date = models.IntegerField(default=get_epoch_days, db_index=True)
-    raw_score = models.IntegerField()
     bssid = models.CharField(max_length=80, default="", db_index=True)
+
+    raw_score = models.IntegerField()
+    is_infected = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
@@ -76,6 +78,18 @@ class Rating(RatingBase):
         del as_dict['date']
         del as_dict['created_at']
         return as_dict
+
+    def set_is_infected(self):
+        """
+            used to set the boolean field is_infected during save.
+            subject to change as definition does.
+        """
+        return self.raw_score > 0
+
+    def save(self, *args, **kwargs):
+        self.is_infected = self.set_is_infected()
+
+        super(Rating, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return "score: %d, bssid: %s" % (self.raw_score, self.bssid)
