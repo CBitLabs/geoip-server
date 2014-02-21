@@ -1,15 +1,17 @@
 """
     Generate and retrieve ratings for networks
 """
+from django.db.models import Q
+from annoying.functions import get_object_or_None
 
 from ratings.util import get_epoch_days, get_network_score, get_event_counts
 from ratings.models import Rating, IpEvent
+
+from api.constants import DNS_D
 from api.models import GeoIP
 
 from common.constants import RADIUS
 from common.util import calc_dist
-
-from annoying.functions import get_object_or_None
 
 
 def rating_manager(ip, bssid=None, ssid=None,
@@ -62,12 +64,13 @@ def create_rating(bssid, ssid, lat, lng):
     events = IpEvent.objects.filter(ip__in=ips)
     score = get_network_score(events)
     event_counts = get_event_counts(events)
-    rating = Rating.objects.create(raw_score=score, bssid=bssid, **event_counts)
+    rating = Rating.objects.create(
+        raw_score=score, bssid=bssid, **event_counts)
     return rating
 
 
 def get_ips_by_bssid(bssid):
-    objs = GeoIP.objects.filter(bssid=bssid)
+    objs = _get_geoip(bssid=bssid)
     return _extract_ips(objs)
 
 
@@ -75,9 +78,13 @@ def get_ips_by_ssid(ssid, lat, lng):
     if not all([ssid, lat, lng]):
         return []
 
-    objs = GeoIP.objects.filter(ssid__icontains=ssid)
+    objs = _get_geoip(ssid__icontains=ssid)
     objs = filter_by_loc(lat, lng, objs)
     return _extract_ips(objs)
+
+
+def _get_geoip(**kwargs):
+    return GeoIP.objects.filter(~Q(datasrc=DNS_D), **kwargs)
 
 
 def _extract_ips(geoip_objs):

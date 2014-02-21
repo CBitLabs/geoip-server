@@ -72,7 +72,7 @@ def parse_dns(d, expr=DNS_EXPR):
 def get_datasrc(res):
     """
         datasrc type can be:
-            dns
+            dns-
             dns-s
             dns-d
     """
@@ -100,7 +100,8 @@ def process_res(request, res, src, remote_addr=None):
     success = is_valid(res)
 
     if success:
-        res["loc"] = _reverse_geo(res["lat"], res["lng"])
+        if src != constants.SCAN:
+            res["loc"] = _reverse_geo(res["lat"], res["lng"])
         res = write_db(res)
     else:
         res['rating'] = get_clean_rating_dict(rating)

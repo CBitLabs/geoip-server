@@ -117,6 +117,9 @@ class ScanReportTest(ApiTest):
     def test_post_valid_scan_report(self):
         res = self.post_scan_report(self.gen_valid_scan_report())
         self.assertTrue(res['success'])
+
+        for rating in res['res']:
+            self.assertEqual(rating['loc'], constants.NO_LOC)
         return res
 
     def test_post_invalid_scan_report(self):
