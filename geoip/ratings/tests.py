@@ -94,7 +94,6 @@ class RatingManagerTest(TestCase):
         self.assertEqual([IP], retrieved)
 
     def test_is_infected(self):
-        event = create_test_ipevent()
         create_test_geoip()
         rating = rating_manager(IP, BSSID)
         self.assertTrue(rating.is_infected)
@@ -123,6 +122,3 @@ class RatingViewTest(TestCase):
         self.assertEqual(len(objs), 1)
         rating_dict = get_res_dict(objs.first())
         self.assertEqual(rating_dict, res)
-
-    
-
