@@ -1,14 +1,17 @@
 from django.db import models
 
 from api.constants import NO_LOC, NO_SEC
+
 from ratings.models import Rating
 from ratings.util import get_clean_rating_dict
+
+from common.models import Base
 
 import datetime
 import humanize
 
 
-class GeoIP(models.Model):
+class GeoIP(Base):
 
     lat = models.FloatField(default=0.0)
     lng = models.FloatField(default=0.0)
@@ -29,10 +32,6 @@ class GeoIP(models.Model):
 
     rating = models.ForeignKey(Rating, null=True)
 
-    def as_dict(self):
-        return {field.name: getattr(self, field.name)
-                for field in self._meta.fields}
-
     def as_clean_dict(self):
         as_dict = self.as_dict()
 
@@ -47,6 +46,3 @@ class GeoIP(models.Model):
         import util
         util.apply_transforms(transforms, as_dict)
         return as_dict
-
-    def __unicode__(self):
-        return str(self.as_dict())

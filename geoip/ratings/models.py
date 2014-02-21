@@ -3,25 +3,21 @@ from django.db import models
 from ratings.util import get_epoch_days
 from ratings.constants import EVENTS
 
+from common.models import Base
+
 import datetime
 
 
-class IpEvent(models.Model):
-
-    """
-        Model to hold data pulled from EntityValues table
-        via ip_stats hadoop job. Updated daily and queried
-        to build a rating object.
-    """
-
-    date = models.IntegerField(db_index=True)
-    ip = models.GenericIPAddressField(db_index=True)
+class RatingBase(Base):
     spam_count = models.IntegerField(default=0)
     spam_freq = models.IntegerField(default=0)
     bot_count = models.IntegerField(default=0)
     bot_freq = models.IntegerField(default=0)
     unexp_count = models.IntegerField(default=0)
     unexp_freq = models.IntegerField(default=0)
+
+    class Meta:
+        abstract = True
 
     def total_count(self):
         return sum(self._get_vals("count"))
@@ -47,12 +43,24 @@ class IpEvent(models.Model):
                     fields.append(name)
         return fields
 
+
+class IpEvent(RatingBase):
+
+    """
+        Model to hold data pulled from EntityValues table
+        via ip_stats hadoop job. Updated daily and queried
+        to build a rating object.
+    """
+
+    date = models.IntegerField(db_index=True)
+    ip = models.GenericIPAddressField(db_index=True)
+
     def __unicode__(self):
         return "Ip: %s, total count: %d, total freq: %d" % (
             self.ip, self.total_count(), self.total_freq())
 
 
-class Rating(models.Model):
+class Rating(RatingBase):
 
     """
         TODO: tweak fields
@@ -61,20 +69,13 @@ class Rating(models.Model):
     raw_score = models.IntegerField()
     bssid = models.CharField(max_length=80, default="", db_index=True)
 
-    spam_count = models.IntegerField(default=0)
-    spam_freq = models.IntegerField(default=0)
-    bot_count = models.IntegerField(default=0)
-    bot_freq = models.IntegerField(default=0)
-    unexp_count = models.IntegerField(default=0)
-    unexp_freq = models.IntegerField(default=0)
-
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 
     def as_clean_dict(self):
-        return {
-            'raw_score': self.raw_score,
-            'bssid': self.bssid,
-        }
+        as_dict = self.as_dict()
+        del as_dict['date']
+        del as_dict['created_at']
+        return as_dict
 
     def __unicode__(self):
         return "score: %d, bssid: %s" % (self.raw_score, self.bssid)
