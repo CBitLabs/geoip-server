@@ -2,17 +2,17 @@ from django.core.management.base import NoArgsCommand
 
 from api.models import GeoIP
 from api.util import _reverse_geo
-from api.constants import NO_LOC, QUERY_LIMIT_AMOUNT, QUERY_LIMIT
+import api.constants as constants
 
 
 class Command(NoArgsCommand):
-    help = "One time data dump of old dns query data"
+    help = "Add location to objects. Runs as daily cron."
 
     def handle(self, **options):
         self.stdout.write('Beginning update...\n')
 
         objs = GeoIP.objects.all()
-        count = QUERY_LIMIT_AMOUNT
+        count = constants.QUERY_LIMIT_AMOUNT
 
         for index, obj in enumerate(objs):
 
@@ -20,13 +20,19 @@ class Command(NoArgsCommand):
                 self.stdout.write("Exceeded query amount")
                 break
 
-            if obj.lat != 0 and obj.lng != 0 and obj.loc == NO_LOC:
+            if self.should_update(obj):
                 obj.loc = _reverse_geo(obj.lat, obj.lng)
                 obj.save()
-                if obj.loc != NO_LOC:
+                if obj.loc != constants.NO_LOC:
                     count -= 1
-                elif obj.loc == QUERY_LIMIT:
+                elif obj.loc == constants.QUERY_LIMIT:
                     count = 0
 
             if index > 0 and not index % 100:
                 self.stdout.write("Updated %d entries" % index)
+
+    def should_update(obj):
+        has_lat = obj.lat != 0 and obj.lng != 0
+        valid_type = obj.loc == constants.NO_LOC \
+            and obj.datasrc != constants.SCAN
+        return has_lat and valid_type

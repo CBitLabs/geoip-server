@@ -2,12 +2,13 @@
     Generate and retrieve ratings for networks
 """
 from django.db.models import Q
+from django.core.exceptions import MultipleObjectsReturned
 from annoying.functions import get_object_or_None
 
 from ratings.util import get_epoch_days, get_network_score, get_event_counts
 from ratings.models import Rating, IpEvent
 
-from api.constants import DNS_D
+from api.constants import DNS_D, SCAN
 from api.models import GeoIP
 
 from common.constants import RADIUS
@@ -48,7 +49,15 @@ def get_from_cache(bssid):
     """
 
     epoch_day = get_epoch_days()
-    return get_object_or_None(Rating, bssid=bssid, date=epoch_day)
+    try:
+        rating = get_object_or_None(Rating, bssid=bssid, date=epoch_day)
+    except MultipleObjectsReturned:
+        ratings = Rating.objects.filter(bssid=bssid)
+        rating = ratings.first()
+        for rating in ratings[1:]:
+            rating.delete()
+
+    return rating
 
 
 def create_rating(bssid, ssid, lat, lng):
@@ -84,7 +93,7 @@ def get_ips_by_ssid(ssid, lat, lng):
 
 
 def _get_geoip(**kwargs):
-    return GeoIP.objects.filter(~Q(datasrc=DNS_D), **kwargs)
+    return GeoIP.objects.filter(~Q(datasrc__in=[DNS_D, SCAN]), **kwargs)
 
 
 def _extract_ips(geoip_objs):

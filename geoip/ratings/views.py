@@ -18,3 +18,16 @@ def get_rating(request):
 
     rating = rating_manager(ip, bssid, ssid, lat, lng)
     return get_res_dict(rating)
+
+
+@csrf_exempt
+@ajax_request
+def scan_ratings(request):
+    bssids = request.GET.getlist("bssid")
+
+    ip = get_client_ip(request)
+
+    return {
+        bssid: rating_manager(ip, bssid).as_clean_dict()
+        for bssid in bssids
+    }
