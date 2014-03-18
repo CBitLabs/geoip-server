@@ -1,12 +1,13 @@
 from django.core.management.base import NoArgsCommand
 
 from common.util import get_conn
+from ratings.constants import FILENAME
 
 import csv
 import os
 
 
-IN_FILE = "/tmp/ip-stats-dl.csv"
+IN_FILE = "/tmp/%s" % FILENAME
 OUT_FILE = "/tmp/ip-stats.csv"
 
 SQL = """CREATE TABLE ratings_ipevent_tmp (LIKE ratings_ipevent);
@@ -25,7 +26,7 @@ COMMIT;
 
 
 class Command(NoArgsCommand):
-    help = "Daily cron to extra entity data and load into the django db"
+    help = "Daily cron to extract entity data and load into the django db"
     args = "filepath to data"
 
     def handle(self, **options):

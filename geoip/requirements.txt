@@ -13,3 +13,5 @@ Fabric==1.8.1
 django-kronos==0.4
 SQLAlchemy==0.9.1
 geopy==0.98
+boto==2.27.0
+retrying==1.0.1
