@@ -4,7 +4,7 @@ from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 from retrying import retry
 
-from config import AWS
+from geoip.config import AWS
 from ratings.constants import FILENAME
 
 
@@ -25,18 +25,18 @@ class Command(NoArgsCommand):
            wait_exponential_multiplier=1000,
            wait_exponential_max=60 * 60 * 1000)
     def download_file(self, bucket, key):
-            k = Key(bucket)
-            k.key = key
-            success = key.exists()
+        k = Key(bucket)
+        k.key = key
+        success = k.exists()
 
-            if success:
-                k.get_contents_to_filename(FILENAME)
-                msg = "Success! Downloaded ip-stats file."
-                k.delete()
+        if success:
+            k.get_contents_to_filename(FILENAME)
+            msg = "Success! Downloaded ip-stats file."
+            k.delete()
 
-            else:
-                msg = "Key missing, retrying."
+        else:
+            msg = "Key missing, retrying."
 
-            self.stdout.write(msg)
+        self.stdout.write(msg)
 
-            return success
+        return success
