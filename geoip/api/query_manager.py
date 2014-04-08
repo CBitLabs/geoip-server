@@ -11,7 +11,7 @@ from common.util import calc_dist
 def history_manager(request, uuid):
     """
         Manager for querying history objects.
-        Groups history items to reduce duplicated view clutter on clients
+        Groups history items to reduce duplicated view clutter on clients.
     """
     start, end = get_slice(request)
     history = GeoIP.objects.filter(~Q(datasrc=constants.SCAN),
@@ -21,11 +21,17 @@ def history_manager(request, uuid):
 
 
 def get_slice(request):
+    """
+        helper to paginate results
+    """
     offset = _get_offset(request)
     return offset, offset + constants.PAGE_SIZE
 
 
 def _get_offset(request):
+    """
+        helper to paginate results
+    """
     page = util.atoi(request.GET.get("page", 0), 0)
     page = max(page - 1, 0)
     offset = page * constants.PAGE_SIZE

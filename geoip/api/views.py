@@ -35,7 +35,7 @@ def wifi_report(request):
         for key in constants.REQ_KEYS
     }
 
-    res = util.process_res(request, res, constants.HTTP)
+    res = util.validate_report(request, res, constants.HTTP)
 
     return res
 
@@ -57,7 +57,7 @@ def scan_report(request):
             for key in constants.REQ_KEYS
         }
 
-        geoip = util.process_res(request, geoip, constants.SCAN)
+        geoip = util.validate_report(request, geoip, constants.SCAN)
         success = success and geoip['success']
         res.append(geoip)
 
@@ -76,7 +76,7 @@ def dns_add(request):
     data = _get_data(request)
     res = util.parse_dns(data)
     datasrc = util.get_datasrc(res)
-    res = util.process_res(request, res, datasrc)
+    res = util.validate_report(request, res, datasrc)
 
     return res
 
@@ -106,6 +106,11 @@ def pref_report(request):
 
 
 def _get_data(request):
+    """
+        Helper to return data from request as a dict.
+        Most methods support both GET and POST requests,
+        this method abstracts retrieving the data from either
+    """
     data = {}
     if request.method == constants.POST:
         try:
@@ -118,5 +123,10 @@ def _get_data(request):
 
 
 def history(request, uuid):
+    """
+        Endpoint to process history requests.
+        The history_manager does the heavy lifting of returning
+        a sorted list of history data without duplicates.
+    """
     history_json = history_manager(request, uuid)
     return json_response(history_json)

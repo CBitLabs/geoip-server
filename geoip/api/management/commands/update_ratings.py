@@ -12,6 +12,7 @@ from ratings.query_manager import rating_manager
 
 
 class Command(NoArgsCommand):
+
     help = "One time data dump of old dns query data"
 
     def handle(self, **options):

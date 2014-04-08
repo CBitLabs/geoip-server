@@ -36,12 +36,18 @@ def _convert(val, default, func):
 
 
 def apply_transforms(transforms, d):
+    """
+        Functions take in a dictionary and
+        apply a transform to the values.
+        Used to clean data for serialization
+    """
     for key, func in transforms:
         d[key] = func(d)
 
 
 def parse_dns(d, expr=DNS_EXPR):
     """
+        Parses data sent by the DNS server.
         input:
         d: input dictionary with form data
             expect {
@@ -71,6 +77,7 @@ def parse_dns(d, expr=DNS_EXPR):
 
 def get_datasrc(res):
     """
+        Tool to format the DNS type.
         datasrc type can be:
             dns-
             dns-s
@@ -79,7 +86,12 @@ def get_datasrc(res):
     return "%s-%s" % (constants.DNS, res.get("resolver", ""))
 
 
-def process_res(request, res, src, remote_addr=None):
+def validate_report(request, res, src, remote_addr=None):
+    """
+        Takes in a request object for wifi reports
+        and validates the data.
+        If valid, a GeoIP object is created.
+    """
     transforms = [
         ('lat', lambda d: atof(d['lat'])),
         ('lng', lambda d: atof(d['lng'])),
@@ -118,6 +130,10 @@ def is_valid(res):
 
 
 def _reverse_geo(lat, lng):
+    """
+        Attempt to find a human readable address from 
+        the Google Geocoder
+    """
     if _is_null_loc(lat, lng):
         loc = constants.NO_LOC
 
@@ -136,6 +152,11 @@ def _is_null_loc(lat, lng):
 
 
 def write_db(d):
+    """
+        Create a new GeoIP object and
+        return a cleaned dictionary of the object
+        for serialization.
+    """
     d = _validate(d)
     geoip = models.GeoIP(**d)
     geoip.save()

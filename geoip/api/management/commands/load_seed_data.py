@@ -14,6 +14,11 @@ DNS_EXPR_OLD = r"(?P<resolver>[sd]{1})\.(?P<lat>%(float)s)\.(?P<lng>%(float)s)\.
 
 
 class Command(BaseCommand):
+
+    """
+        Command used to load initial data from old app. Shouldn't need
+        to be run in the future.
+    """
     help = "One time data dump of old dns query data"
     args = "filepath"
 
@@ -31,7 +36,7 @@ class Command(BaseCommand):
             geoip = self.extract_record(line)
             if util.is_valid(geoip):
                 datasrc = util.get_datasrc(geoip)
-                geoip = util.process_res(
+                geoip = util.validate_report(
                     None, geoip, datasrc, remote_addr=line["srcip"])
 
             if not index % 100:

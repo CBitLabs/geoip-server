@@ -6,6 +6,13 @@ import api.constants as constants
 
 
 class Command(NoArgsCommand):
+
+    """
+        Command is used to help add loaction information
+         when we are rate limited by the Google API. Location is 
+         displayed as part of the history object, not mission critical 
+         if it's missing
+    """
     help = "Add location to objects. Runs as daily cron."
 
     def handle(self, **options):

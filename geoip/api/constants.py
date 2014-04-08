@@ -1,3 +1,7 @@
+"""
+	Common constants used by the api module
+"""
+
 PAGE_SIZE = 10
 NO_LOC = "No location found!"
 NO_SEC = "Unknown"

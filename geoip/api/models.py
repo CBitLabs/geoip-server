@@ -13,6 +13,11 @@ import humanize
 
 class GeoIP(Base):
 
+    """
+        Object to hold geoip data. Created when data is posted and 
+        is used to reverse index into BS data for security ratings.
+    """
+
     lat = models.FloatField(default=0.0)
     lng = models.FloatField(default=0.0)
     loc = models.CharField(max_length=300, default=NO_LOC)
@@ -51,7 +56,7 @@ class GeoIP(Base):
 class PrefReport(Base):
 
     """
-        Model to hold ssid for watched networks
+        Model to hold ssid for watched networks.
     """
     uuid = models.CharField(max_length=80, default="")
     ssid = models.CharField(max_length=80, default="", db_index=True)
