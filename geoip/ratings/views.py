@@ -24,7 +24,7 @@ def get_rating(request):
 @ajax_request
 def scan_ratings(request):
     bssids = request.GET.getlist("bssid")
-    ssids = request.GET.getlist("sssid")
+    ssids = request.GET.getlist("ssid")
 
     ip = get_client_ip(request)
 

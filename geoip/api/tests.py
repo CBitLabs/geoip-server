@@ -43,6 +43,15 @@ class ApiTest(TestCase):
     def gen_invalid_scan_report(self):
         return [self.gen_invalid_wifi_report() for _ in range(SCAN_COUNT)]
 
+    def gen_valid_pref_report(self):
+        return {
+            'uuid': UUID,
+            'ssid': SSID,
+        }
+
+    def gen_invalid_pref_report(self):
+        return {}
+
     def gen_valid_dns_request(self):
         return {
             'qname': 'd.42.3953404.-71.1456972.Equity_eWireless.06026fc50cd3.xrig9u9j6vaq.101.12.210.74.geo.cbitlabs.com',
@@ -63,6 +72,16 @@ class ApiTest(TestCase):
     @assert_res_code
     def get_dnsadd(self, data):
         return self.client.get('/dnsadd', data=data)
+
+    @as_json
+    @assert_res_code
+    def post_pref_report(self, data):
+        return self.client.post('/pref_report', data=data)
+
+    @as_json
+    @assert_res_code
+    def get_pref_report(self, data):
+        return self.client.get('/pref_report', data=data)
 
     @as_json
     @assert_res_code
@@ -149,6 +168,29 @@ class DnsReportTest(ApiTest):
 
     def test_getdns_invalid(self):
         res = self.get_dnsadd(self.gen_invalid_dns_request())
+        self.assertFalse(res['success'])
+        return res
+
+
+class PrefReportTest(ApiTest):
+
+    def test_post_prefreport_valid(self):
+        res = self.post_pref_report(self.gen_valid_pref_report())
+        self.assertTrue(res['success'])
+        return res
+
+    def test_post_pref_report_invalid(self):
+        res = self.post_pref_report(self.gen_invalid_pref_report())
+        self.assertFalse(res['success'])
+        return res
+
+    def test_get_pref_report_valid(self):
+        res = self.get_pref_report(self.gen_valid_pref_report())
+        self.assertTrue(res['success'])
+        return res
+
+    def test_get_pref_report_invalid(self):
+        res = self.get_pref_report(self.gen_invalid_pref_report())
         self.assertFalse(res['success'])
         return res
 

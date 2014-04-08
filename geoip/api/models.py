@@ -46,3 +46,12 @@ class GeoIP(Base):
         import util
         util.apply_transforms(transforms, as_dict)
         return as_dict
+
+
+class PrefReport(Base):
+
+    """
+        Model to hold ssid for watched networks
+    """
+    uuid = models.CharField(max_length=80, default="")
+    ssid = models.CharField(max_length=80, default="", db_index=True)

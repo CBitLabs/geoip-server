@@ -5,6 +5,7 @@ from common.util import json_response
 import common.no_warnings
 
 from api.query_manager import history_manager
+from api.models import PrefReport
 import api.constants as constants
 import api.util as util
 
@@ -78,6 +79,30 @@ def dns_add(request):
     res = util.process_res(request, res, datasrc)
 
     return res
+
+
+@csrf_exempt
+@ajax_request
+def pref_report(request):
+    """
+        Endpoint to log user preferences for watched networks
+    """
+
+    data = _get_data(request)
+    KEYS = ["uuid", "ssid"]
+    success = len(data) == len(KEYS)
+
+    for k in KEYS:
+        if k not in data:
+            success = False
+
+    if success:
+        pref = PrefReport(**data)
+        pref.save()
+
+    return {
+        'success': success
+    }
 
 
 def _get_data(request):

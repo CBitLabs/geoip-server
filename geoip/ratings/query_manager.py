@@ -26,10 +26,17 @@ def rating_manager(ip, bssid=None, ssid=None,
     if bssid is None:
         geoip = bssid_from_ip(ip)  # try to match by ip
 
-        if geoip is None:
-            return None
-        else:
+        if geoip is not None:
             bssid = geoip.bssid
+
+    if ssid is not None:
+        geoip = geoip_from_ssid(ip)  # try to match by ip
+
+        if geoip is not None:
+            bssid = geoip.bssid
+
+    if bssid is None:
+        bssid = ""
 
     if use_cache:
         rating = get_from_cache(bssid)
@@ -41,6 +48,10 @@ def rating_manager(ip, bssid=None, ssid=None,
 
 def bssid_from_ip(ip):
     return GeoIP.objects.filter(ip=ip).first()
+
+
+def geoip_from_ssid(ssid):
+    return GeoIP.objects.filter(ssid=ssid).first()
 
 
 def get_from_cache(bssid):
