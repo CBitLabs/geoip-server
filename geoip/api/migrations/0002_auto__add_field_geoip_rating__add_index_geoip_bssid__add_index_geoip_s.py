@@ -10,16 +10,16 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'GeoIP.rating'
         orm["ratings.Rating"].objects.get_or_create(id=0, raw_score=0)
-        db.add_column(u'api_geoip', 'rating',
-                      self.gf('django.db.models.fields.related.ForeignKey')(
-                          default=0, to=orm['ratings.Rating']),
-                      keep_default=False)
+        # db.add_column(u'api_geoip', 'rating',
+        #               self.gf('django.db.models.fields.related.ForeignKey')(
+        #                   default=0, to=orm['ratings.Rating']),
+        #               keep_default=False)
 
         # Adding index on 'GeoIP', fields ['bssid']
-        db.create_index(u'api_geoip', ['bssid'])
+        # db.create_index(u'api_geoip', ['bssid'])
 
         # Adding index on 'GeoIP', fields ['ssid']
-        db.create_index(u'api_geoip', ['ssid'])
+        # db.create_index(u'api_geoip', ['ssid'])
 
     def backwards(self, orm):
         # Removing index on 'GeoIP', fields ['ssid']
