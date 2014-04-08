@@ -14,6 +14,10 @@ import json
 
 
 def calc_dist(lat1, lng1, lat2, lng2):
+    """
+        Returns the distance in meters between
+        two lat lng pairs
+    """
     point1 = Point(_get_point(lat1, lng1))
     point2 = Point(_get_point(lat2, lng2))
     return distance.distance(point1, point2).meters
@@ -24,6 +28,9 @@ def _get_point(lat, lng):
 
 
 def dsum(dicts):
+    """
+        helper to sum the values of a dictionary
+    """
     ret = defaultdict(int)
     for d in dicts:
         for k, v in d.items():
@@ -45,6 +52,7 @@ def json_response(res):
 
 
 def get_client_ip(request):
+
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]

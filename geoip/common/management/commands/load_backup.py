@@ -10,6 +10,11 @@ SQL = """DROP DATABASE IF EXISTS geoip_bak;
 
 
 class Command(BaseCommand):
+
+    """
+        Command to load a backup in case of failure or to 
+        initilize a dev environment
+    """
     help = "Load database file into local store"
     args = "filepath"
 
