@@ -13,13 +13,11 @@ class Command(NoArgsCommand):
 
     def handle(self, **options):
         c = S3Connection(AWS['ACCESS_KEY'], AWS['SECRET_KEY'])
-        bucket = AWS['BUCKET']
-        key = AWS['KEY']
 
         self.stdout.write("Connected to S3")
 
-        b = c.get_bucket(bucket)
-        self.download_file(b, key)
+        b = c.get_bucket(AWS['BUCKET'])
+        self.download_file(b, AWS['KEY'])
 
     @retry(wait='exponential_sleep',
            wait_exponential_multiplier=1000,

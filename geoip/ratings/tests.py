@@ -49,6 +49,7 @@ class RatingManagerTest(TestCase):
         created = Rating.objects.create(raw_score=get_network_score([event]),
                                         bssid=BSSID)
         retrieved = rating_manager(IP)
+        self.assertTrue(retrieved.is_valid)
         self.assertEqual(created, retrieved)
 
     def test_get_network_score(self):
@@ -95,12 +96,17 @@ class RatingManagerTest(TestCase):
 
     def test_is_infected(self):
         create_test_geoip()
+        create_test_ipevent()
         rating = rating_manager(IP, BSSID)
         self.assertTrue(rating.is_infected)
 
         rating.raw_score = 0
         rating.save()
         self.assertFalse(rating.is_infected)
+
+    def test_is_invalid(self):
+        rating = rating_manager(IP, BSSID)
+        self.assertFalse(rating.is_valid)
 
 
 class RatingViewTest(TestCase):
@@ -121,4 +127,5 @@ class RatingViewTest(TestCase):
         objs = Rating.objects.all()
         self.assertEqual(len(objs), 1)
         rating_dict = get_res_dict(objs.first())
+        self.assertTrue(rating_dict['data']['is_valid'])
         self.assertEqual(rating_dict, res)

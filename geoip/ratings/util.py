@@ -13,7 +13,6 @@ def get_network_score(events):
         Takes in a list of IpEvent objects clustered for a single network
         and calculates a score for the given set
     """
-    # TODO
     return sum(map(lambda o: o.total_count() + o.total_freq(), events))
 
 

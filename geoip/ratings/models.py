@@ -62,14 +62,13 @@ class IpEvent(RatingBase):
 
 class Rating(RatingBase):
 
-    """
-        TODO: tweak fields
-    """
     date = models.IntegerField(default=get_epoch_days, db_index=True)
     bssid = models.CharField(max_length=80, default="", db_index=True)
 
     raw_score = models.IntegerField()
     is_infected = models.BooleanField(default=False)
+    # flag to say if we have a rating at all
+    is_valid = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(default=datetime.datetime.utcnow)
 

@@ -72,9 +72,10 @@ def create_rating(bssid, ssid, lat, lng):
     ips = set(bssid_ips).union(set(ssid_ips))
     events = IpEvent.objects.filter(ip__in=ips)
     score = get_network_score(events)
+    is_valid = len(events) > 0
     event_counts = get_event_counts(events)
     rating = Rating.objects.create(
-        raw_score=score, bssid=bssid, **event_counts)
+        raw_score=score, bssid=bssid, is_valid=is_valid, **event_counts)
     return rating
 
 

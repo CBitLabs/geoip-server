@@ -24,10 +24,22 @@ def get_rating(request):
 @ajax_request
 def scan_ratings(request):
     bssids = request.GET.getlist("bssid")
+    ssids = request.GET.getlist("sssid")
 
     ip = get_client_ip(request)
 
-    return {
-        bssid: rating_manager(ip, bssid).as_clean_dict()
+    # ratings found by bssid
+    bssid_ratings = {
+        bssid: rating_manager(ip, bssid=bssid).as_clean_dict()
         for bssid in bssids
     }
+
+    # ratings found by ssid
+    ssid_ratings = {
+        ssid: rating_manager(ip, ssid=ssid).as_clean_dict()
+        for ssid in ssids
+    }
+
+    bssid_ratings.update(ssid_ratings)
+
+    return bssid_ratings
