@@ -7,8 +7,6 @@ django-annoying==0.7.6
 django-admin-bootstrapped==0.3.2
 South==0.8.4
 django-debug-toolbar==1.0.1
-numpy==1.6.2
-matplotlib==1.1.1
 Fabric==1.8.1
 django-kronos==0.4
 SQLAlchemy==0.9.1
