@@ -10,6 +10,9 @@ from common.util import get_client_ip
 @csrf_exempt
 @ajax_request
 def get_rating(request):
+    """
+        retrieve a single rating for a network
+    """
     bssid = request.GET.get("bssid")
     ssid = request.GET.get("ssid")
     lat = request.GET.get("lat")
@@ -23,6 +26,10 @@ def get_rating(request):
 @csrf_exempt
 @ajax_request
 def scan_ratings(request):
+    """
+        send back a list of rating objects
+        can be found by searching by bssid or ssid
+    """
     bssids = request.GET.getlist("bssid")
     ssids = request.GET.getlist("ssid")
 

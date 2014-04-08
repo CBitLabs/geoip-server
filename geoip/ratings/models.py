@@ -9,6 +9,10 @@ import datetime
 
 
 class RatingBase(Base):
+
+    """
+        Rating object for data that comes out of BS pipeline.
+    """
     spam_count = models.IntegerField(default=0)
     spam_freq = models.IntegerField(default=0)
     bot_count = models.IntegerField(default=0)
@@ -62,6 +66,9 @@ class IpEvent(RatingBase):
 
 class Rating(RatingBase):
 
+    """
+        Object to hold rating information, keyed on bssid
+    """
     date = models.IntegerField(default=get_epoch_days, db_index=True)
     bssid = models.CharField(max_length=80, default="", db_index=True)
 

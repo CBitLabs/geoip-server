@@ -113,6 +113,9 @@ def _extract_ips(geoip_objs):
 
 
 def filter_by_loc(lat, lng, objs):
+    """
+        Exclude object that are outside of RADISU meters
+    """
     filtered_objs = []
     for o in objs:
         if calc_dist(lat, lng, o.lat, o.lng) < RADIUS:
